@@ -13,10 +13,12 @@ find_package(Boost 1.38 REQUIRED
 include_directories(
     src/
     third_party/avro-cpp-1.11.0/include/
+    third_party/thrift-0.16.0/lib/cpp/src/
     ${Boost_INCLUDE_DIRS}
 )
 add_subdirectory(third_party/snappy-1.1.9)
 add_subdirectory(third_party/avro-cpp-1.11.0)
+add_subdirectory(third_party/thrift-0.16.0)
 
 
 
@@ -70,6 +72,7 @@ set(LUA_LINK_LIBS
     m
     readline
     dl
+    thriftz
     avrocpp_s
     snappy
     lua_external
@@ -82,3 +85,4 @@ target_link_libraries(doctor lua_s lua_external ${LUA_LINK_LIBS} ${Boost_LIBRARI
 
 add_executable(luac src/luac.c)
 target_link_libraries(luac lua_s ${LUA_LINK_LIBS})
+
