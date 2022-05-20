@@ -70,8 +70,8 @@ set(LUA_LINK_LIBS
     m
     readline
     dl
-    snappy
     avrocpp_s
+    snappy
     lua_external
 )
 
