@@ -2,7 +2,32 @@ project(lua)
 cmake_minimum_required(VERSION 3.22)
 
 
-SET(LUA_LIB_SRC 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+
+find_package(Boost 1.38 REQUIRED
+    COMPONENTS filesystem iostreams program_options regex system)
+
+
+include_directories(
+    src/
+    third_party/avro-cpp-1.11.0/include/
+    ${Boost_INCLUDE_DIRS}
+)
+add_subdirectory(third_party/snappy-1.1.9)
+add_subdirectory(third_party/avro-cpp-1.11.0)
+
+
+
+set(LUA_EXTERNAL_LIB_SRC
+    external/lavro.cc
+)
+add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
+
+
+
+set(LUA_LIB_SRC
   src/lapi.c
   src/lauxlib.c
   src/lbaselib.c
@@ -41,13 +66,19 @@ add_compile_definitions(
   LUA_USE_READLINE=ON
   LUA_USE_LINUX=ON
 )
-set(LUA_LINK_LIBS m readline dl)
+set(LUA_LINK_LIBS
+    m
+    readline
+    dl
+    snappy
+    avrocpp_s
+    lua_external
+)
 
-add_library(lua STATIC ${LUA_LIB_SRC})
+add_library(lua_s STATIC ${LUA_LIB_SRC})
 
-add_executable(luashell src/lua.c)
-target_link_libraries(luashell lua ${LUA_LINK_LIBS})
-set_target_properties(luashell luashell PROPERTIES OUTPUT_NAME lua)
+add_executable(doctor src/lua.c)
+target_link_libraries(doctor lua_s lua_external ${LUA_LINK_LIBS} ${Boost_LIBRARIES})
 
 add_executable(luac src/luac.c)
-target_link_libraries(luac lua ${LUA_LINK_LIBS})
+target_link_libraries(luac lua_s ${LUA_LINK_LIBS})

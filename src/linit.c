@@ -33,6 +33,7 @@
 
 #include "lualib.h"
 #include "lauxlib.h"
+#include "../external/lavro.h"
 
 
 /*
@@ -50,6 +51,7 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_UTF8LIBNAME, luaopen_utf8},
   {LUA_DBLIBNAME, luaopen_debug},
+  {"avro", luaopen_avro},
   {NULL, NULL}
 };
 
