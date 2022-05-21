@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 find_package(Boost 1.38 REQUIRED
@@ -14,16 +15,22 @@ include_directories(
     src/
     third_party/avro-cpp-1.11.0/include/
     third_party/thrift-0.16.0/lib/cpp/src/
+    third_party/impala-codegen/
+    third_party/cjson/
+    build/third_party/thrift-0.16.0/
     ${Boost_INCLUDE_DIRS}
 )
 add_subdirectory(third_party/snappy-1.1.9)
 add_subdirectory(third_party/avro-cpp-1.11.0)
 add_subdirectory(third_party/thrift-0.16.0)
+add_subdirectory(third_party/impala-codegen)
+add_subdirectory(third_party/cjson)
 
 
 
 set(LUA_EXTERNAL_LIB_SRC
     external/lavro.cc
+    external/limpala.cc
 )
 add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
 
@@ -72,6 +79,9 @@ set(LUA_LINK_LIBS
     m
     readline
     dl
+    crypto
+    cjson
+    impala_thrift
     thriftz
     avrocpp_s
     snappy

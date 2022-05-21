@@ -34,6 +34,8 @@
 #include "lualib.h"
 #include "lauxlib.h"
 #include "../external/lavro.h"
+#include "../external/limpala.h"
+#include "lua_cjson.h"
 
 
 /*
@@ -52,6 +54,8 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_UTF8LIBNAME, luaopen_utf8},
   {LUA_DBLIBNAME, luaopen_debug},
   {"avro", luaopen_avro},
+  {"impala", luaopen_impala},
+  {"cjson", luaopen_cjson},
   {NULL, NULL}
 };
 
