@@ -31,6 +31,8 @@ add_subdirectory(third_party/cjson)
 set(LUA_EXTERNAL_LIB_SRC
     external/lavro.cc
     external/limpala.cc
+    external/lmissing.c
+    external/lerrors.c
 )
 add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
 

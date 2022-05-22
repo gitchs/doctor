@@ -35,6 +35,8 @@
 #include "lauxlib.h"
 #include "../external/lavro.h"
 #include "../external/limpala.h"
+#include "../external/lerrors.h"
+#include "../external/lmissing.h"
 #include "lua_cjson.h"
 
 
@@ -56,6 +58,8 @@ static const luaL_Reg loadedlibs[] = {
   {"avro", luaopen_avro},
   {"impala", luaopen_impala},
   {"cjson", luaopen_cjson},
+  {"missing", luaopen_missing},
+  {"errors", luaopen_errors},
   {NULL, NULL}
 };
 
