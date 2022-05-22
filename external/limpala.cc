@@ -180,12 +180,89 @@ static int limpala_runtime_profile_node_name(lua_State* L) {
   return 1;
 }
 
+static int limpala_runtime_profile_node_num_children(lua_State* L) {
+  impala::TRuntimeProfileNode* node =
+      (impala::TRuntimeProfileNode*)lua_touserdata(L, 1);
+  if (node == nullptr) {
+    lua_pushnil(L);
+    return 1;
+  }
+  lua_pushinteger(L, node->num_children);
+  return 1;
+}
+
+static int limpala_runtime_profile_node_event_sequences(lua_State* L) {
+  impala::TRuntimeProfileNode* node =
+      (impala::TRuntimeProfileNode*)lua_touserdata(L, 1);
+  if (node == nullptr) {
+    lua_pushnil(L);
+    return 1;
+  }
+
+  const char* const name = lua_tostring(L, 2);
+  if (name != nullptr) {
+    auto it = node->event_sequences.begin();
+    for (; it != node->event_sequences.end(); ++it) {
+      if (it->name == name) {
+        break;
+      }
+    }
+    if (it == node->event_sequences.end()) {
+      lua_pushnil(L);
+      return 1;
+    }
+    lua_newtable(L);
+    for (size_t i = 0; i < it->labels.size(); ++i) {
+      lua_pushinteger(L, i + 1);
+      lua_newtable(L);
+      lua_pushinteger(L, 1);
+      lua_pushstring(L, it->labels.at(i).c_str());
+      lua_settable(L, -3);
+
+      lua_pushinteger(L, 2);
+      lua_pushinteger(L, it->timestamps.at(i));
+      lua_settable(L, -3);
+
+      lua_settable(L, -3);
+    }
+    return 1;
+  }
+
+  // fetch all event_sequences
+  lua_newtable(L);
+  int es_index = 1;
+  for (auto it = node->event_sequences.begin();
+       it != node->event_sequences.end(); ++it) {
+    lua_pushinteger(L, es_index++);
+    lua_newtable(L);
+    lua_pushstring(L, it->name.c_str());
+    lua_setfield(L, -2, "name");
+    lua_newtable(L);
+    for (size_t i = 0; i < it->labels.size(); ++i) {
+      lua_pushinteger(L, i + 1);
+      lua_newtable(L);
+      lua_pushinteger(L, 1);
+      lua_pushstring(L, it->labels.at(i).c_str());
+      lua_settable(L, -3);
+      lua_pushinteger(L, 2);
+      lua_pushinteger(L, it->timestamps.at(i));
+      lua_settable(L, -3);
+      lua_settable(L, -3);
+    }
+    lua_setfield(L, -2, "events");
+    lua_settable(L, -3);
+  }
+  return 1;
+}
+
 const static luaL_Reg runtime_profile_node_mm_libs[] = {{NULL, NULL}};
 
 const static luaL_Reg runtime_profile_node_libs[] = {
     {"debug", limpala_runtime_profile_node_debug},
     {"name", limpala_runtime_profile_node_name},
+    {"num_children", limpala_runtime_profile_node_num_children},
     {"counters", limpala_runtime_profile_node_counters},
+    {"event_sequences", limpala_runtime_profile_node_event_sequences},
     {"info_strings", limpala_runtime_profile_node_info_strings},
     {NULL, NULL}};
 
