@@ -10,6 +10,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Boost 1.38 REQUIRED
     COMPONENTS filesystem iostreams program_options regex system)
 
+set(OPENSSL_USE_STATIC_LIBS ON)
+find_package(OpenSSL REQUIRED)
+
 
 include_directories(
     src/
@@ -18,6 +21,7 @@ include_directories(
     third_party/impala-codegen/
     third_party/cjson/
     build/third_party/thrift-0.16.0/
+    ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
 )
 add_subdirectory(third_party/snappy-1.1.9)
@@ -81,20 +85,38 @@ set(LUA_LINK_LIBS
     m
     readline
     dl
-    crypto
     cjson
+)
+set(DOCTOR_LINK_LIBS
+    ${LUA_LINK_LIBS}
     impala_thrift
     thriftz
     avrocpp_s
     snappy
     lua_external
+    ${OPENSSL_CRYPTO_LIBRARY}
 )
 
 add_library(lua_s STATIC ${LUA_LIB_SRC})
 
 add_executable(doctor src/lua.c)
-target_link_libraries(doctor lua_s lua_external ${LUA_LINK_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(doctor lua_s lua_external ${Boost_LIBRARIES} ${DOCTOR_LINK_LIBS})
 
 add_executable(luac src/luac.c)
 target_link_libraries(luac lua_s ${LUA_LINK_LIBS})
+
+
+if (DEBUG_VARIABLES)
+
+macro(print_all_variables)
+    message(STATUS "print_all_variables------------------------------------------{")
+    get_cmake_property(_variableNames VARIABLES)
+    foreach (_variableName ${_variableNames})
+        message(STATUS "${_variableName}=${${_variableName}}")
+    endforeach()
+    message(STATUS "print_all_variables------------------------------------------}")
+endmacro()
+
+print_all_variables()
+endif(DEBUG_VARIABLES)
 
