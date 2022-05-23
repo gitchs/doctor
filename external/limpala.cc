@@ -127,11 +127,8 @@ static int limpala_runtime_profile_node_counters(lua_State* L) {
   lua_newtable(L);
   auto it = node->counters.begin();
   for (; it != node->counters.end(); ++it) {
-    char name_buffer[256] = {0};
-    sprintf(name_buffer, "%s / %s", it->name.c_str(),
-            impala::to_string(it->unit).c_str());
     lua_pushinteger(L, it->value);
-    lua_setfield(L, -2, name_buffer);
+    lua_setfield(L, -2, it->name.c_str());
   }
   return 1;
 }
