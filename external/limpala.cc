@@ -88,7 +88,7 @@ static int limpala_runtime_profile_tree_node_at(lua_State* L) {
     return 1;
   }
   size_t index = lua_tointeger(L, 2);
-  if (index == 0) {
+  if (index == 0 || index > tree->delegation->nodes.size()) {
     lua_pushnil(L);
     return 1;
   }
