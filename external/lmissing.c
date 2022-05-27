@@ -18,6 +18,12 @@
 #include "lua.h"
 #include "lualib.h"
 
+static int lmissing_getcwd(lua_State* L) {
+    const char* const cwd = getcwd(NULL, 0);
+    lua_pushstring(L, cwd);
+    return 1;
+}
+
 static int lmissing_getpid(lua_State* L) {
   lua_pushinteger(L, getpid());
   return 1;
@@ -99,6 +105,7 @@ const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
                                 {"getrusage", lmissing_getrusage},
                                 {"strptime", lmissing_strptime},
                                 {"getpid", lmissing_getpid},
+                                {"getcwd", lmissing_getpwd},
                                 {NULL, NULL}};
 
 int luaopen_missing(lua_State* L) {
