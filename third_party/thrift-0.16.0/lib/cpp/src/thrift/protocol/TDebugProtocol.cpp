@@ -374,8 +374,7 @@ uint32_t TDebugProtocol::writeString(const string& str) {
         output += "\\v";
         break;
       default:
-        output += "\\x";
-        output += byte_to_hex(*it);
+        output += *it;
       }
     }
   }
