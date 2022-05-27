@@ -105,7 +105,7 @@ const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
                                 {"getrusage", lmissing_getrusage},
                                 {"strptime", lmissing_strptime},
                                 {"getpid", lmissing_getpid},
-                                {"getcwd", lmissing_getpwd},
+                                {"getcwd", lmissing_getcwd},
                                 {NULL, NULL}};
 
 int luaopen_missing(lua_State* L) {
