@@ -18,6 +18,13 @@
 #include "lua.h"
 #include "lualib.h"
 
+
+static int lmissing_isatty(lua_State* L) {
+    int fd = lua_tonumber(L, 1);
+    lua_pushboolean(L,isatty(fd));
+    return 1;
+}
+
 static int lmissing_getcwd(lua_State* L) {
     const char* const cwd = getcwd(NULL, 0);
     lua_pushstring(L, cwd);
@@ -106,6 +113,7 @@ const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
                                 {"strptime", lmissing_strptime},
                                 {"getpid", lmissing_getpid},
                                 {"getcwd", lmissing_getcwd},
+                                {"isatty", lmissing_isatty},
                                 {NULL, NULL}};
 
 int luaopen_missing(lua_State* L) {
