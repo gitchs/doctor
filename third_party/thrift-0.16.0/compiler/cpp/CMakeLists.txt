@@ -121,7 +121,6 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/thrift${CMAKE_EXECUTABLE_
 add_custom_target(copy-thrift-compiler
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/thrift${CMAKE_EXECUTABLE_SUFFIX}")
 
-install(TARGETS thrift-compiler DESTINATION bin)
 
 if(BUILD_TESTING)
     add_subdirectory(test)

@@ -199,12 +199,6 @@ if(MSVC)
     add_definitions("-DUNICODE -D_UNICODE")
 endif()
 
-# Install the headers
-install(DIRECTORY "src/thrift" DESTINATION "${INCLUDE_INSTALL_DIR}"
-    FILES_MATCHING PATTERN "*.h" PATTERN "*.tcc")
-# Copy config.h file
-install(DIRECTORY "${CMAKE_BINARY_DIR}/thrift" DESTINATION "${INCLUDE_INSTALL_DIR}"
-    FILES_MATCHING PATTERN "*.h")
 
 if(BUILD_TESTING)
     add_subdirectory(test)

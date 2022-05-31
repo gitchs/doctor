@@ -155,15 +155,6 @@ set (CPACK_PACKAGE_FILE_NAME "avrocpp-${AVRO_VERSION_MAJOR}")
 
 include (CPack)
 
-install (TARGETS avrocpp_s
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION lib)
-
-install (TARGETS avrogencpp RUNTIME DESTINATION bin)
-
-install (DIRECTORY include/avro/ DESTINATION include/avro
-    FILES_MATCHING PATTERN *.hh)
 
 if (NOT CMAKE_BUILD_TYPE)
     set (CMAKE_BUILD_TYPE Release CACHE STRING

@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(SNAPPY_INSTALL OFF)
+
 
 find_package(Boost 1.38 REQUIRED
     COMPONENTS filesystem iostreams program_options regex system)
@@ -104,6 +106,11 @@ target_link_libraries(doctor lua_s lua_external ${DOCTOR_LINK_LIBS} ${Boost_LIBR
 
 add_executable(luac src/luac.c)
 target_link_libraries(luac lua_s ${LUA_LINK_LIBS})
+
+
+install(TARGETS
+    doctor
+)
 
 
 if (DEBUG_VARIABLES)
