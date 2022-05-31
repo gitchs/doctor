@@ -37,8 +37,4 @@ if (NOT CYGWIN)
 						VERSION ${thrift_VERSION_MAJOR}.${thrift_VERSION_MINOR}.${thrift_VERSION_PATCH}
 						COMPATIBILITY SameMajorVersion
 						)
-
-		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ThriftConfig.cmake"
-						"${CMAKE_CURRENT_BINARY_DIR}/ThriftConfigVersion.cmake"
-						DESTINATION "${CMAKE_INSTALL_DIR}/thrift")
 endif()

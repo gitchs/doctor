@@ -3,134 +3,36 @@ os = require'os'
 cjson = require'cjson'
 missing = require'missing'
 strutils = require'strutils'
+local hdfsutils = require'hdfsutils'
 
+local CASE_NAME = 'HDFS_IO'
 
-function log(message)
-    io.stderr:write(message .. '\n')
-end
-
-
-local BaseReport = {}
-function BaseReport:new(o)
-    o = o or {}
-    o.name = 'HDFS_IO'
-    setmetatable(o, BaseReport)
-    return o
-end
-
-
-function BaseReport:to_markdown(self)
-    print(self)
-end
-
-
-
-local list_hdfs_nodes = function(tree)
-    function skip_branch(tree, branch_index)
-        local node = tree:node_at(branch_index)
-        local retval = branch_index
-        local num_children = node:num_children()
-        while num_children > 0 do
-            retval = retval + 1
-            node = tree:node_at(retval)
-            num_children = num_children + node:num_children() - 1
-        end
-        return retval + 1
-    end
-
-    -- general speaking
-    --   nodes[1] is Query node
-    --   nodes[2] is Summary node
-    -- let's start index from 3
-    local index = 3
-    local node = nil
-    while true do
-        node = tree:node_at(index)
-        if node == nil then
-            return {}
-        end
-        index = index + 1
-        -- jump to execution profile node
-        if strutils.startswith(node:name(), 'Execution Profile ') then
-            break
-        end
-    end
-    index = index + 1
-
-    local nodes_num = tree:nodes_length()
-    local fragment = nil
-    local instance = nil
-    local instance_lifecycle = nil
-    local rows = {}
-    while index <= nodes_num do
-        node = tree:node_at(index)
-        if node:name() == 'Per Node Profiles' then
-            index = skip_branch(tree, index)
-            goto continue
-        end
-        local node_name = node:name()
-        if strutils.startswith(node_name, 'Averaged Fragment F') then
-            index = skip_branch(tree, index)
-            goto continue
-        end
-        if strutils.startswith(node_name, 'Fragment F') or strutils.startswith(node_name, 'Coordinator Fragment F') then
-            fragment = node
-            instance = nil -- reset instance when switch fragment
-            goto add_index_then_continue
-        end
-        if strutils.startswith(node_name, 'Instance ') then
-            instance = node
-            goto add_index_then_continue
-        end
-        if node_name == 'Fragment Instance Lifecycle Timings' then
-            instance_lifecycle = node
-            goto add_index_then_continue
-        end
-
-        if strutils.startswith(node_name, 'HDFS_SCAN_NODE ') then
-            local row = {
-                delegation = node,
-                index = index,
-                fragment = fragment,
-                instance = instance,
-                instance_lifecycle = instance_lifecycle,
-            }
-            table.insert(rows, row)
-            goto add_index_then_continue
-        end
-
-        ::add_index_then_continue::
-        index = index + 1
-        ::continue::
-    end
-    return rows
-
-end
 
 local libs = function(tree)
     local query_id = tree:query_id()
     local summary = tree:node_at(2)
     local query_type = summary:info_strings('Query Type')
     local retval = {
-        case_name = 'HDFS_IO',
+        query_state = summary:info_strings('Query State'),
+        tested = false,
+        match = false,
     }
     if query_type ~= 'QUERY' and query_type ~= 'DML' then
-        retval.tested = false
         retval.report = string.format('invalid query type "%s"', query_type)
-        return retval
+        return CASE_NAME, retval
     end
-    local nodes = list_hdfs_nodes(tree)
+    local nodes = hdfsutils.list_hdfs_nodes(tree)
     retval.hdfs_node_num = #nodes
     if #nodes == 0 then
-        retval.tested = false
         retval.report = string.format('query has no hdfs nodes')
-        return retval
+        return CASE_NAME, retval
     end
 
-
+    retval.match = true
     local short_circuit_disabled_instances = {}
     local read_local_disable_instances = {}
     local zero_io_instances = {}
+    local remote_read_instances = {}
     local remote_scan_instances = {}
 
     for _, node in ipairs(nodes) do
@@ -140,6 +42,11 @@ local libs = function(tree)
         if counters['BytesRead'] == 0 then
             table.insert(zero_io_instances, node.instance)
             goto continue
+        end
+
+
+        if counters['BytesRead'] > counters['BytesReadLocal'] then
+            table.insert(remote_read_instances, node.instance)
         end
 
         if counters['RemoteScanRanges'] > 0 then
@@ -162,7 +69,8 @@ local libs = function(tree)
     retval.read_local_disable = #read_local_disable_instances
     retval.zero_io = #zero_io_instances
     retval.remote_scan = #remote_scan_instances
-    return retval
+    retval.remote_read = #remote_read_instances
+    return CASE_NAME, retval
 end
 
 
@@ -194,15 +102,23 @@ function main()
             local summary = tree:node_at(2)
             assert(summary:name() == 'Summary')
             local query_type = summary:info_strings('Query Type')
-            local result = libs(tree)
-            print(cjson.encode(result))
+            local case_name, result = libs(tree)
+            result['query_id'] = tree:query_id()
+            if result.match then
+                print(cjson.encode(result))
+                if result.hdfs_node_num > (result.zero_io + result.short_circuit_disabled) then
+                    local ofilename = string.format('profiles/%s.txt', tree:query_id())
+                    local fd = io.open(ofilename, 'w')
+                    fd:write(b64_profile)
+                    fd:close()
+                end
+            end
         end
     end
 end
 
-print(cjson.encode(missing.getrusage()))
+io.stderr:write(string.format('%s\n', cjson.encode(missing.getrusage())))
 main()
-print(cjson.encode(missing.getrusage()))
+io.stderr:write(string.format('%s\n', cjson.encode(missing.getrusage())))
 
--- io.stderr:write(cjson.encode(missing.getrusage()))
 

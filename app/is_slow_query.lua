@@ -20,21 +20,20 @@ local libs = function(tree)
             '%Y-%m-%d %H:%M:%S'))
 
     local retval = {
-        case_name = 'IS_SLOW_QUERY',
         is_slow = false,
     }
     if start_time.wday == 1 or start_time.wday == 7 then
         -- ignore Sun and Sat
         retval.is_slow = false
-        return retval
+        return CASE_NAME, retval
     end
     if start_time.hour >=9 and start_time.hour < 20 then
         -- 09:00 ~ 20:00
         local duration = tonumber(summary_node:info_strings("Duration(ms)"))
         retval.is_slow = duration > SLOW_QUERY_TIMEOUT
-        return retval
+        return CASE_NAME, retval
     end
-    return retval
+    return CASE_NAME, retval
 end
 
 

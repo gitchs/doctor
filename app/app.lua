@@ -2,8 +2,10 @@
 io = require'io'
 impala = require'impala'
 cjson = require'cjson'
+avro = require'avro'
 missing = require'missing'
 strutils = require'strutils'
+logutils = require'logutils'
 
 
 local FRAGMENT_INSTANCE_LIFECYCLE_TIMINGS_KEY = 'Fragment Instance Lifecycle Timings'
@@ -23,7 +25,7 @@ function print_usage()
     help = 'app.lua: \n' ..
 'Usage:\n' ..
 'TO BE CONTINUE'
-    print(help)
+    logutils.info(help)
 end
 
 
@@ -32,12 +34,27 @@ function analyze_profile(b64_profile)
     if not ok then
         return ok, err, nil
     end
-    local reports = {}
+    local reports = {
+        query_id = tree:query_id(),
+    }
     for _, fn in ipairs(analyze_chains) do
-        local report = fn(tree)
-        table.insert(reports, report)
+        local case_name, report = fn(tree)
+        reports[case_name] = report
     end
-    return true, nil, tree:query_id(), reports
+    return true, nil, reports
+end
+
+
+function avro_wrapper(filename)
+    local reader = avro.open(filename)
+    return function()
+        local has_more, row = reader:next()
+        if not has_more then
+            return nil
+        else
+            return row
+        end
+    end
 end
 
 
@@ -47,13 +64,15 @@ function main()
         print_usage()
         return 1
     end
-    local raw = io.open(filename, 'r'):read('*all')
-    local ok, err, query_id, reports = analyze_profile(raw)
-    if not ok then
-        print(ok, err)
-        return 1
+    for row in avro_wrapper(filename) do
+        -- local raw = io.open(filename, 'r'):read('*all')
+        local ok, err, reports = analyze_profile(row.profile)
+        if not ok then
+            logutils.info(ok, err)
+            return 1
+        end
+        print(cjson.encode(reports))
     end
-    print(query_id, cjson.encode(reports))
     return 0
 end
 
