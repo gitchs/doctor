@@ -22,6 +22,7 @@ include_directories(
     third_party/thrift-0.16.0/lib/cpp/src/
     third_party/impala-codegen/
     third_party/cjson/
+    third_party/luasql/
     build/third_party/thrift-0.16.0/
     ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
@@ -31,6 +32,7 @@ add_subdirectory(third_party/avro-cpp-1.11.0)
 add_subdirectory(third_party/thrift-0.16.0)
 add_subdirectory(third_party/impala-codegen)
 add_subdirectory(third_party/cjson)
+add_subdirectory(third_party/luasql)
 
 
 
@@ -102,7 +104,7 @@ set(DOCTOR_LINK_LIBS
 add_library(lua_s STATIC ${LUA_LIB_SRC})
 
 add_executable(doctor src/lua.c)
-target_link_libraries(doctor lua_s lua_external ${DOCTOR_LINK_LIBS} ${Boost_LIBRARIES})
+target_link_libraries(doctor lua_s lua_external ${DOCTOR_LINK_LIBS} LUASQL_SQLITE3 sqlite3 ${Boost_LIBRARIES})
 
 add_executable(luac src/luac.c)
 target_link_libraries(luac lua_s ${LUA_LINK_LIBS})

@@ -38,6 +38,7 @@
 #include "../external/lerrors.h"
 #include "../external/lmissing.h"
 #include "lua_cjson.h"
+#include "luasql.h"
 
 
 /*
@@ -60,6 +61,7 @@ static const luaL_Reg loadedlibs[] = {
   {"cjson", luaopen_cjson},
   {"missing", luaopen_missing},
   {"errors", luaopen_errors},
+  {"luasql.sqlite3", luaopen_luasql_sqlite3},
   {NULL, NULL}
 };
 
