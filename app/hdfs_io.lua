@@ -35,6 +35,9 @@ local libs = function(tree)
     local remote_read_instances = {}
     local remote_scan_instances = {}
 
+    local sum_rows_return = 0
+    local sum_rows_read = 0
+
     for _, node in ipairs(nodes) do
         -- hdfs counters
         --   https://github.com/apache/impala/blob/3.4.0/be/src/exec/hdfs-scan-node-base.cc#L104-L111
@@ -44,6 +47,8 @@ local libs = function(tree)
             goto continue
         end
 
+        sum_rows_return = sum_rows_return + (counters['RowsReturned'] or 0)
+        sum_rows_read = sum_rows_read + (counters['RowsRead'] or 0)
 
         if counters['BytesRead'] > counters['BytesReadLocal'] then
             table.insert(remote_read_instances, node.instance)
@@ -70,6 +75,8 @@ local libs = function(tree)
     retval.zero_io = #zero_io_instances
     retval.remote_scan = #remote_scan_instances
     retval.remote_read = #remote_read_instances
+    retval.sum_rows_return = sum_rows_return
+    retval.sum_rows_read = sum_rows_read
     return CASE_NAME, retval
 end
 

@@ -7,6 +7,8 @@ missing = require'missing'
 strutils = require'strutils'
 logutils = require'logutils'
 
+local sqlite3 = require'luasql.sqlite3'.sqlite3
+
 
 local FRAGMENT_INSTANCE_LIFECYCLE_TIMINGS_KEY = 'Fragment Instance Lifecycle Timings'
 
@@ -57,6 +59,16 @@ function avro_wrapper(filename)
     end
 end
 
+function sqlite3_it(filename)
+    local env = sqlite3()
+    local db = env:connect(filename)
+    local cursor = db:execute[[select profile from profile]]
+    return function()
+        local profile = cursor:fetch()
+        return profile
+    end
+end
+
 
 function main()
     local filename = arg[1]
@@ -64,9 +76,9 @@ function main()
         print_usage()
         return 1
     end
-    for row in avro_wrapper(filename) do
-        -- local raw = io.open(filename, 'r'):read('*all')
-        local ok, err, reports = analyze_profile(row.profile)
+    -- for row in avro_wrapper(filename) do
+    for profile in sqlite3_it(filename) do
+        local ok, err, reports = analyze_profile(profile)
         if not ok then
             logutils.info(ok, err)
             return 1

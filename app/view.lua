@@ -26,6 +26,7 @@ function main()
     end
     local profile = tree:debug()
     profile = profile:gsub('\\n', '\n')
+    profile = profile:gsub('\\[t]', ' ')
     print(profile)
 end
 
