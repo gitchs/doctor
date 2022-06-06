@@ -65,15 +65,25 @@ static int lavro_mm_gc(lua_State* L) {
 static int lavro_next(lua_State* L) {
   LAvroReader* reader = (LAvroReader*)lua_touserdata(L, 1);
   const auto& schema = reader->delegation->dataSchema();
-  reader->delegation->read(*reader->datum);
+  bool has_more = false;
+  try {
+    has_more = reader->delegation->read(*reader->datum);
+  } catch (const avro::Exception& e) {
+      lua_pushboolean(L, 0);
+      lua_pushstring(L, e.what());
+      lua_pushnil(L);
+      return 3;
+  }
   avro::GenericRecord record = reader->datum->value<avro::GenericRecord>();
 
-  bool has_more = reader->delegation->read(*reader->datum);
+  // bool has_more = reader->delegation->read(*reader->datum);
   lua_pushboolean(L, has_more);
   if (!has_more) {
     lua_pushnil(L);
-    return 2;
+    lua_pushnil(L);
+    return 3;
   }
+  lua_pushnil(L);
   lua_newtable(L);
   const auto& schema_root = schema.root();
   for (size_t i = 0; i < schema_root->names(); i++) {
@@ -113,7 +123,7 @@ static int lavro_next(lua_State* L) {
     lua_setfield(L, -2, name.c_str());
   }
 
-  return 2;
+  return 3;
 }
 
 const static luaL_Reg avro_meta_libs[] = {{"__index", NULL},
