@@ -12,11 +12,60 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #include "lauxlib.h"
 #include "lmissing.h"
 #include "lua.h"
 #include "lualib.h"
+
+
+static int lmissing_readdir(lua_State* L) {
+    if (!lua_isstring(L, 1)) {
+        goto FAILED;
+    }
+    const char* const dirname = lua_tostring(L, 1);
+    DIR* dir = opendir(dirname);
+    if (dir == NULL) {
+        goto FAILED;
+    }
+
+    lua_pushboolean(L, 1);
+    lua_newtable(L);
+    int i = 1;
+
+    while (1) {
+        struct dirent* f = readdir(dir);
+        if (f == NULL) {
+            break;
+        }
+        if (strcmp(f->d_name, ".") == 0 || strcmp(f->d_name, "..") == 0) {
+            // ignore . and ..
+            continue;
+        }
+        lua_pushinteger(L, i++);
+        lua_pushstring(L, f->d_name);
+        lua_settable(L, -3);
+    }
+    closedir(dir);
+    return 2;
+FAILED:
+    lua_pushboolean(L, 0);
+    lua_pushnil(L);
+    return 2;
+}
+
+
+static int lmissing_day2date(lua_State* L) {
+    if(!lua_isinteger(L, 1)) {
+        lua_pushnil(L);
+        return 1;
+    }
+    int day = lua_tointeger(L, 1);
+    time_t ts = day * 86400 + 8 * 3600;
+    lua_pushinteger(L, ts);
+    return 1;
+}
 
 
 static int lmissing_isatty(lua_State* L) {
@@ -114,6 +163,8 @@ const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
                                 {"getpid", lmissing_getpid},
                                 {"getcwd", lmissing_getcwd},
                                 {"isatty", lmissing_isatty},
+                                {"readdir", lmissing_readdir},
+                                {"day2date", lmissing_day2date},
                                 {NULL, NULL}};
 
 int luaopen_missing(lua_State* L) {
