@@ -24,6 +24,8 @@ include_directories(
     third_party/cjson/
     third_party/luasql/
     build/third_party/thrift-0.16.0/
+    third_party/mariadb-connector-c-3.3.1-src/include
+    third_party/mariadb-connector-c-3.3.1-src/copygen
     ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
 )
@@ -32,7 +34,9 @@ add_subdirectory(third_party/avro-cpp-1.11.0)
 add_subdirectory(third_party/thrift-0.16.0)
 add_subdirectory(third_party/impala-codegen)
 add_subdirectory(third_party/cjson)
+add_subdirectory(third_party/mariadb-connector-c-3.3.1-src)
 add_subdirectory(third_party/luasql)
+
 
 
 
@@ -98,7 +102,7 @@ set(DOCTOR_LINK_LIBS
     avrocpp_s
     snappy
     lua_external
-    ${OPENSSL_CRYPTO_LIBRARY}
+    ${OPENSSL_LIBRARIES}
 )
 
 add_library(lua_s STATIC ${LUA_LIB_SRC})

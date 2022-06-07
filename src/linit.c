@@ -62,6 +62,7 @@ static const luaL_Reg loadedlibs[] = {
   {"missing", luaopen_missing},
   {"errors", luaopen_errors},
   {"luasql.sqlite3", luaopen_luasql_sqlite3},
+  {"luasql.mysql", luaopen_luasql_mysql},
   {NULL, NULL}
 };
 
