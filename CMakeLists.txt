@@ -104,15 +104,25 @@ set(DOCTOR_LINK_LIBS
     thriftz
     avrocpp_s
     snappy
-    lua_external
     ${OPENSSL_LIBRARIES}
     ${GSL_LIBRARY}
+    lua_external
 )
 
 add_library(lua_s STATIC ${LUA_LIB_SRC})
 
 add_executable(doctor src/lua.c)
-target_link_libraries(doctor lua_s lua_external ${DOCTOR_LINK_LIBS} LUASQL_SQLITE3 sqlite3 ${Boost_LIBRARIES})
+target_link_libraries(doctor
+    lua_s
+    lua_external
+    LUASQL
+    libmariadb_s
+    sqlite3
+    ${DOCTOR_LINK_LIBS}
+    ${Boost_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    pthread
+)
 
 add_executable(luac src/luac.c)
 target_link_libraries(luac lua_s ${LUA_LINK_LIBS})
