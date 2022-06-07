@@ -37,6 +37,7 @@
 #include "../external/limpala.h"
 #include "../external/lerrors.h"
 #include "../external/lmissing.h"
+#include "../external/lgsl.h"
 #include "lua_cjson.h"
 #include "luasql.h"
 
@@ -63,6 +64,7 @@ static const luaL_Reg loadedlibs[] = {
   {"errors", luaopen_errors},
   {"luasql.sqlite3", luaopen_luasql_sqlite3},
   {"luasql.mysql", luaopen_luasql_mysql},
+  {"gsl", luaopen_gsl},
   {NULL, NULL}
 };
 

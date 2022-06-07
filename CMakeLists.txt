@@ -14,6 +14,7 @@ find_package(Boost 1.38 REQUIRED
 
 set(OPENSSL_USE_STATIC_LIBS ON)
 find_package(OpenSSL REQUIRED)
+find_package(GSL REQUIRED)
 
 
 include_directories(
@@ -28,6 +29,7 @@ include_directories(
     third_party/mariadb-connector-c-3.3.1-src/copygen
     ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
+    ${GSL_INCLUDE_DIRS}
 )
 add_subdirectory(third_party/snappy-1.1.9)
 add_subdirectory(third_party/avro-cpp-1.11.0)
@@ -45,6 +47,7 @@ set(LUA_EXTERNAL_LIB_SRC
     external/limpala.cc
     external/lmissing.c
     external/lerrors.c
+    external/lgsl.c
 )
 add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
 
@@ -103,6 +106,7 @@ set(DOCTOR_LINK_LIBS
     snappy
     lua_external
     ${OPENSSL_LIBRARIES}
+    ${GSL_LIBRARY}
 )
 
 add_library(lua_s STATIC ${LUA_LIB_SRC})
