@@ -8,9 +8,10 @@ set(CMAKE_C_STANDARD 99)
 set(LUASQL_SQLITE3_SRCS
     ls_sqlite3.c
     luasql.c
+    ls_mysql.c
 )
 add_compile_definitions(LUASQL_VERSION_NUMBER="2.6.0")
 
 add_library(LUASQL_SQLITE3 STATIC ${LUASQL_SQLITE3_SRCS})
-target_link_libraries(LUASQL_SQLITE3 sqlite3)
+target_link_libraries(LUASQL_SQLITE3 sqlite3 libmariadb_s)
 
