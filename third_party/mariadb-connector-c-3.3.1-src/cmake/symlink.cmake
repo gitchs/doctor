@@ -8,7 +8,7 @@
 MACRO(create_symlink symlink_name target install_path)
 # According to cmake documentation symlinks work on unix systems only
 IF(UNIX)
-  # Get target components 
+  # Get target components
   ADD_CUSTOM_COMMAND(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${symlink_name}
     COMMAND ${CMAKE_COMMAND} ARGS -E remove -f ${symlink_name}
@@ -16,7 +16,7 @@ IF(UNIX)
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS ${target}
     )
-  
+
   ADD_CUSTOM_TARGET(SYM_${symlink_name}
     ALL
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${symlink_name})
@@ -24,12 +24,9 @@ IF(UNIX)
 
   IF(CMAKE_GENERATOR MATCHES "Xcode")
     # For Xcode, replace project config with install config
-    STRING(REPLACE "${CMAKE_CFG_INTDIR}" 
+    STRING(REPLACE "${CMAKE_CFG_INTDIR}"
       "\${CMAKE_INSTALL_CONFIG_NAME}" output ${CMAKE_CURRENT_BINARY_DIR}/${symlink_name})
   ENDIF()
 
-  # presumably this will be used for libmysql*.so symlinks
-  INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${symlink_name} DESTINATION ${install_path}
-          COMPONENT Development)
 ENDIF()
 ENDMACRO()

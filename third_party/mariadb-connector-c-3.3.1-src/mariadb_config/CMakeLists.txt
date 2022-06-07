@@ -56,12 +56,3 @@ IF(CMAKE_SYSTEM_NAME MATCHES AIX)
   TARGET_LINK_LIBRARIES(mariadb_config compat-getopt)
 ENDIF()
 
-# Installation
-#
-INSTALL(TARGETS mariadb_config
-        DESTINATION "${INSTALL_BINDIR}"
-        COMPONENT Development)
-
-INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/libmariadb.pc
-        DESTINATION "${INSTALL_PCDIR}"
-        COMPONENT Development)
