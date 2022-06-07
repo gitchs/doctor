@@ -105,7 +105,7 @@ set(DOCTOR_LINK_LIBS
     avrocpp_s
     snappy
     ${OPENSSL_LIBRARIES}
-    ${GSL_LIBRARY}
+    ${GSL_LIBRARIES}
     lua_external
 )
 
