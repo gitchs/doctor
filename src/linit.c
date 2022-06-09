@@ -39,6 +39,7 @@
 #include "../external/lmissing.h"
 #include "../external/lgsl.h"
 #include "../external/lhashlib.h"
+#include "../external/lre2.h"
 #include "lua_cjson.h"
 #include "luasql.h"
 
@@ -58,6 +59,7 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_UTF8LIBNAME, luaopen_utf8},
   {LUA_DBLIBNAME, luaopen_debug},
+  {"re2", luaopen_re2},
   {"avro", luaopen_avro},
   {"impala", luaopen_impala},
   {"cjson", luaopen_cjson},

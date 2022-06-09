@@ -28,6 +28,7 @@ include_directories(
     third_party/mariadb-connector-c-3.3.1-src/include
     third_party/mariadb-connector-c-3.3.1-src/copygen
     third_party/xxHash-0.8.1
+    third_party/re2-2022-06-01/
     ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${GSL_INCLUDE_DIRS}
@@ -47,6 +48,10 @@ set(XXHASH_BUILD_XXHSUM OFF)
 add_subdirectory(third_party/xxHash-0.8.1/cmake_unofficial)
 
 
+set(RE2_BUILD_TESTING OFF)
+add_subdirectory(third_party/re2-2022-06-01)
+
+
 
 
 set(LUA_EXTERNAL_LIB_SRC
@@ -55,6 +60,7 @@ set(LUA_EXTERNAL_LIB_SRC
     external/lmissing.c
     external/lerrors.c
     external/lhashlib.c
+    external/lre2.cc
     external/lgsl.c
 )
 add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
@@ -127,6 +133,7 @@ target_link_libraries(doctor
     libmariadb_s
     sqlite3
     xxhash
+    re2
     ${DOCTOR_LINK_LIBS}
     ${Boost_LIBRARIES}
     ${OPENSSL_LIBRARIES}
