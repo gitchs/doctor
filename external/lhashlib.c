@@ -49,6 +49,20 @@ static int lhashlib_xxh64_digest(lua_State* L) {
   return 1;
 }
 
+static int lhashlib_xxh64_hexdigest(lua_State* L) {
+  char hexdigest[17] = {0};
+  XXH64_state_t* state = NULL;
+  GET_XXH64_STATE(L, state);
+  uint64_t digest = (uint64_t)XXH64_digest(state);
+  sprintf(hexdigest, "%02x%02x%02x%02x%02x%02x%02x%02x",
+          (uint8_t)(digest >> 56), (uint8_t)(digest >> 48),
+          (uint8_t)(digest >> 40), (uint8_t)(digest >> 32),
+          (uint8_t)(digest >> 24), (uint8_t)(digest >> 16),
+          (uint8_t)(digest >> 8), (uint8_t)(digest));
+  lua_pushstring(L, hexdigest);
+  return 1;
+}
+
 static int lhashlib_xxh64_reset(lua_State* L) {
   XXH64_state_t* state = NULL;
   GET_XXH64_STATE(L, state);
@@ -64,6 +78,7 @@ static int lhashlib_xxh64_reset(lua_State* L) {
 static luaL_Reg xxh64_libs[] = {{"reset", lhashlib_xxh64_reset},
                                 {"update", lhashlib_xxh64_update},
                                 {"digest", lhashlib_xxh64_digest},
+                                {"hexdigest", lhashlib_xxh64_hexdigest},
                                 {NULL, NULL}};
 
 static luaL_Reg libs[] = {{"xxh64", lhashlib_xxh64_init}, {NULL, NULL}};
