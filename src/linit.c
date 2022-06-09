@@ -38,6 +38,7 @@
 #include "../external/lerrors.h"
 #include "../external/lmissing.h"
 #include "../external/lgsl.h"
+#include "../external/lhashlib.h"
 #include "lua_cjson.h"
 #include "luasql.h"
 
@@ -61,6 +62,7 @@ static const luaL_Reg loadedlibs[] = {
   {"impala", luaopen_impala},
   {"cjson", luaopen_cjson},
   {"missing", luaopen_missing},
+  {"hashlib", luaopen_hashlib},
   {"errors", luaopen_errors},
   {"luasql.sqlite3", luaopen_luasql_sqlite3},
   {"luasql.mysql", luaopen_luasql_mysql},

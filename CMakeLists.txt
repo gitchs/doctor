@@ -27,6 +27,7 @@ include_directories(
     build/third_party/thrift-0.16.0/
     third_party/mariadb-connector-c-3.3.1-src/include
     third_party/mariadb-connector-c-3.3.1-src/copygen
+    third_party/xxHash-0.8.1
     ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${GSL_INCLUDE_DIRS}
@@ -40,6 +41,12 @@ add_subdirectory(third_party/mariadb-connector-c-3.3.1-src)
 add_subdirectory(third_party/luasql)
 
 
+set(XXHASH_BUILD_XXHSUM OFF)
+set(XXHASH_BUNDLED_MODE ON)
+set(XXHASH_BUILD_XXHSUM OFF)
+add_subdirectory(third_party/xxHash-0.8.1/cmake_unofficial)
+
+
 
 
 set(LUA_EXTERNAL_LIB_SRC
@@ -47,6 +54,7 @@ set(LUA_EXTERNAL_LIB_SRC
     external/limpala.cc
     external/lmissing.c
     external/lerrors.c
+    external/lhashlib.c
     external/lgsl.c
 )
 add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
@@ -118,6 +126,7 @@ target_link_libraries(doctor
     LUASQL
     libmariadb_s
     sqlite3
+    xxhash
     ${DOCTOR_LINK_LIBS}
     ${Boost_LIBRARIES}
     ${OPENSSL_LIBRARIES}

@@ -19,6 +19,15 @@
 #include "lua.h"
 #include "lualib.h"
 
+static int lmissing_gettimeofday(lua_State* L) {
+  // int gettimeofday(struct timeval *tp, void *tzp);
+  struct timeval tv;
+  gettimeofday(&tv, NULL); // The gettimeofday() function returns 0 and no value is reserved to indicate an error. 
+  lua_pushinteger(L, tv.tv_sec);
+  lua_pushinteger(L, tv.tv_usec);
+  return 2;
+}
+
 
 static int lmissing_readdir(lua_State* L) {
     if (!lua_isstring(L, 1)) {
@@ -165,6 +174,7 @@ const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
                                 {"isatty", lmissing_isatty},
                                 {"readdir", lmissing_readdir},
                                 {"day2date", lmissing_day2date},
+                                {"gettimeofday", lmissing_gettimeofday},
                                 {NULL, NULL}};
 
 int luaopen_missing(lua_State* L) {
