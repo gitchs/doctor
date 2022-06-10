@@ -62,6 +62,7 @@ set(LUA_EXTERNAL_LIB_SRC
     external/lhashlib.c
     external/lre2.cc
     external/lgsl.c
+    external/llimits.c
 )
 add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
 

@@ -40,6 +40,7 @@
 #include "../external/lgsl.h"
 #include "../external/lhashlib.h"
 #include "../external/lre2.h"
+#include "../external/llimits.h"
 #include "lua_cjson.h"
 #include "luasql.h"
 
@@ -59,6 +60,7 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_UTF8LIBNAME, luaopen_utf8},
   {LUA_DBLIBNAME, luaopen_debug},
+  {"limits", luaopen_limits},
   {"re2", luaopen_re2},
   {"avro", luaopen_avro},
   {"impala", luaopen_impala},
