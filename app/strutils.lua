@@ -1,4 +1,4 @@
-#!/usr/bin/env lua
+#!/usr/bin/env doctor
 string = require'string'
 
 
@@ -11,6 +11,12 @@ function libs.startswith(s, prefix)
     return s:sub(1, #prefix) == prefix
 end
 
+function libs.endswith(s, suffix)
+    if #s < #suffix then
+        return false
+    end
+    return s:sub(#s-#suffix+1, -1) == suffix
+end
 
 return libs
 

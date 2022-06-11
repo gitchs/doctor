@@ -1,9 +1,9 @@
 #!/usr/bin/env doctor
-missing = require'missing'
-impala = require'impala'
+local missing = require'missing'
+local impala = require'impala'
 
 
-function main()
+local function main()
     local b64_profile = nil
     if missing.isatty(0) then
         local filename = arg[1]

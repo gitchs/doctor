@@ -1,14 +1,33 @@
 #!/usr/bin/env doctor
-os = require'os'
-cjson = require'cjson'
-missing = require'missing'
-strutils = require'strutils'
-gsl = require'gsl'
+local logging = require'logging'
+local avro = require'avro'
 
 local libs = {}
+function libs.avro(filename)
+    local reader = avro.open(filename)
+    assert(reader ~= nil, string.format('failed to open avro file "%s"', filename))
+    return function()
+        local has_more, err, row = reader:next()
+        if err ~= nil then
+            logging.error('avro reader error %s', err)
+            return nil
+        end
+        if not has_more then
+            return nil
+        else
+            return row
+        end
+    end
+end
 
 
-function libs.list_hdfs_nodes(tree)
+function libs.list_operator_nodes(tree, node_filter_callback)
+    if type(node_filter_callback) ~= 'function' then
+        error('node_filter_callback should be a function')
+        return nil
+    end
+
+
     local function skip_branch(tree, branch_index)
         local node = tree:node_at(branch_index)
         local retval = branch_index
@@ -68,7 +87,7 @@ function libs.list_hdfs_nodes(tree)
             instance_lifecycle = node
             goto add_index_then_continue
         end
-        if strutils.startswith(node_name, 'HDFS_SCAN_NODE ') then
+        if node_filter_callback(index, fragment, instance, node) then
             local row = {
                 delegation = node,
                 index = index,
@@ -84,69 +103,6 @@ function libs.list_hdfs_nodes(tree)
         ::continue::
     end
     return rows
-end
-
-
-function libs.list_hdfs_node_counters(tree)
-    local nodes = libs.list_hdfs_nodes(tree)
-    local rows = {}
-    for i, node in ipairs(nodes) do
-        local row = node.delegation:counters()
-        row['fragment'] = node.fragment:name()
-        row['instance'] = node.instance:name()
-        rows[i] = row
-    end
-    return rows
-end
-
-
-local function naive_skew(ns)
-    if #ns == 0 or type(ns[1]) ~= 'number' then
-        return false
-    end
-    -- not an ideal implementation
-    local mean, std, skew, kurt = gsl.status(ns)
-    local up = mean + 2 * std
-    for _, n in ipairs(ns) do
-        if n > up then
-            return true
-        end
-    end
-    return false
-end
-
-
-local function is_skew(ns)
-    return naive_skew(ns)
-end
-
-function libs.skew_counters(counters)
-    -- counters ==> list_hdfs_node_counters
-    local groups = {}
-    local retval = {}
-
-    for i, counter in ipairs(counters) do
-        groups[counter.fragment] = groups[counter.fragment] or {}
-        table.insert(groups[counter.fragment], counter)
-    end
-
-    for fragment, fragment_counters in pairs(groups) do
-        local ns = {}
-        for _, counter in ipairs(fragment_counters) do
-            for ckey, cval in pairs(counter) do
-                ns[ckey] = ns[ckey] or {}
-                table.insert(ns[ckey], cval)
-            end
-        end
-        for ckey, cns in pairs(ns) do
-            local result = is_skew(cns)
-            if result then
-                retval[fragment] = retval[fragment] or {}
-                retval[fragment][ckey] = true
-            end
-        end
-    end
-    return retval
 end
 
 

@@ -1,4 +1,10 @@
 *.txt
 doctor
 *.json
+once.lua
+*.csv
+*.sql
+test.lua
+dump.sh
+parallel.py
 

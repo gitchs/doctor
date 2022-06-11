@@ -1,5 +1,5 @@
-#!/usr/bin/env lua
-missing = require'missing'
+#!/usr/bin/env doctor
+local missing = require'missing'
 
 -- 从以下条件进行判断
 -- 1. 执行日期不是周末;
