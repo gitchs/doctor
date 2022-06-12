@@ -1,9 +1,9 @@
 #!/usr/bin/env doctor
-os = require'os'
-cjson = require'cjson'
-missing = require'missing'
-strutils = require'strutils'
-gsl = require'gsl'
+local os = require'os'
+local cjson = require'cjson'
+local missing = require'missing'
+local strutils = require'strutils'
+local gsl = require'gsl'
 
 local libs = {}
 
