@@ -8,7 +8,6 @@ local sqlutils = require'sqlutils'
 local hdfsutils = require'hdfsutils'
 local limits = require'limits'
 
-
 local function init_db()
     local init_statements = {
         -- [[drop table if exists meta]],
@@ -71,7 +70,6 @@ CREATE TABLE IF NOT EXISTS hdfs_counters(
     conn:commit()
     return env, conn
 end
-
 
 local function process_profile(conn, f, tree)
     local query_id = tree:query_id()
@@ -139,7 +137,7 @@ local function process_profile(conn, f, tree)
             instance = counter.instance,
             counters = cjson.encode(counter),
         }
-        require'dbutils'.db_insert(conn, 'hdfs_counters', counter_record)
+        require'dbutils'.insert_row(conn, 'hdfs_counters', counter_record)
     end
 
     local row = {
@@ -167,7 +165,7 @@ local function process_profile(conn, f, tree)
         sql_sign = sqlutils.sign(sql),
         sql = sql,
     }
-    require'dbutils'.db_insert(conn, 'meta', row)
+    require'dbutils'.insert_row(conn, 'meta', row)
 end
 
 local function process_file(f)
@@ -183,7 +181,6 @@ local function process_file(f)
     end
 end
 
-
 local function main()
     local f = arg[1]
     if f == nil then
@@ -193,7 +190,6 @@ local function main()
     logging.info('handle file %s', f)
     process_file(pathlib.Path:new(f))
 end
-
 
 local function main2()
     local env, conn = init_db()

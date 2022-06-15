@@ -1,6 +1,6 @@
 local libs = {}
 
-function libs.db_insert(conn, tname, row)
+function libs.insert_row(conn, tname, row)
     local p0 = {}
     local p1 = {}
     for key, val in pairs(row) do

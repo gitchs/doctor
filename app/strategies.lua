@@ -47,6 +47,10 @@ function libs.operator_skew_detection(tree2)
             table.insert(total_times, op.counters['TotalTime'])
         end
         local min, max, mean, std = gsl.status(total_times)
+        if duration_sec < 20 or (max/1e9) < 20 then
+            -- 这种太小的值，没有检查的必要
+            goto op_skew_continue
+        end
         local min_sec = min/1e9
         local up_bound = mean + 2 * std
         for i, op in ipairs(ops) do
@@ -82,6 +86,18 @@ function libs.operator_skew_detection(tree2)
         end
         ::op_skew_continue::
     end
+    return retval
+end
+
+function libs.test_profile(tree)
+    local retval = {}
+    local tree2 = profileutils.build_tree(tree)
+    local r = libs.is_slow(tree2)
+    retval.is_slow = r
+    if r < 0 then
+        return retval
+    end
+    retval.skew_ops = libs.operator_skew_detection(tree2)
     return retval
 end
 
