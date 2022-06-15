@@ -19,12 +19,14 @@ find_package(GSL REQUIRED)
 
 include_directories(
     src/
+    third_party/snappy-1.1.9/
     third_party/avro-cpp-1.11.0/include/
     third_party/thrift-0.16.0/lib/cpp/src/
     third_party/impala-codegen/
     third_party/cjson/
     third_party/luasql/
     build/third_party/thrift-0.16.0/
+    build/third_party/snappy-1.1.9/
     third_party/mariadb-connector-c-3.3.1-src/include
     third_party/mariadb-connector-c-3.3.1-src/copygen
     third_party/xxHash-0.8.1

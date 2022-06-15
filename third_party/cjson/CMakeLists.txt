@@ -15,8 +15,8 @@ if(NOT CMAKE_BUILD_TYPE)
         FORCE)
 endif()
 
-find_package(Lua51 REQUIRED)
-include_directories(${LUA_INCLUDE_DIR})
+# find_package(Lua51 REQUIRED)
+# include_directories(${LUA_INCLUDE_DIR})
 
 if(NOT USE_INTERNAL_FPCONV)
     # Use libc number conversion routines (strtod(), sprintf())
