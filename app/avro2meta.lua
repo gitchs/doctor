@@ -17,6 +17,7 @@ query_id VARCHAR(255) NOT NULL,
 query_type VARCHAR(64) NOT NULL,
 query_state VARCHAR(255) NOT NULL,
 coordinator VARCHAR(255) NOT NULL,
+cluster_memory VARCHAR(255) NOT NULL,
 session_type VARCHAR(64) NOT NULL,
 `sql_sign` VARCHAR(32) NOT NULL,
 start_time DATETIME NOT NULL,
@@ -91,6 +92,7 @@ local function process_profile(conn, f, tree)
     local duration = tonumber(summary:info_strings('Duration(ms)'))
     local admission_result = summary:info_strings('Admission result')
     local admission_wait = tonumber(summary:info_strings('Admission Wait') or 0)
+    local cluster_memory = summary:info_strings('Cluster Memory Admitted') or ''
     local coordinator = summary:info_strings('Coordinator')
     local admission_timeout = 0
     if query_state == 'EXCEPTION' then
@@ -145,6 +147,7 @@ local function process_profile(conn, f, tree)
         query_type = query_type,
         query_state = query_state,
         coordinator = coordinator,
+        cluster_memory = cluster_memory,
         start_time = start_time,
         end_time = end_time,
         duration = duration,

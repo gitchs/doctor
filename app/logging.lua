@@ -1,13 +1,28 @@
 #!/usr/bin/env doctor
-os = require'os'
-math = require'math'
-cjson = require'cjson'
-missing = require'missing'
-strutils = require'strutils'
+local os = require'os'
+local math = require'math'
+local cjson = require'cjson'
+local missing = require'missing'
+local strutils = require'strutils'
 
-local libs = {}
+local libs = {
+    DEBUG=0,
+    INFO=1,
+    WARN=2,
+    ERROR=3,
+}
 
-function log(level, format, ...)
+local log_level = 0
+
+function libs.set_level(level)
+    assert(level>=0 and level <= libs.ERROR, 'invalid log level')
+    log_level = level
+end
+
+local function log(lnum, level, format, ...)
+    if lnum < log_level then
+        return
+    end
     local message = nil
     if type(format) ~= 'string' then
         message = tostring(format)
@@ -25,12 +40,16 @@ function log(level, format, ...)
     io.stderr:write(string.format('[%s %s.%06d] %s\n', level, now, usec, message))
 end
 
+libs.debug = function (format, ...)
+    log(libs.DEBUG, 'DEBUG', format, ...)
+end
+
 libs.info = function(format, ...)
-    log('INFO', format, ...)
+    log(libs.INFO, 'INFO', format, ...)
 end
 
 libs.error = function(format, ...)
-    log('ERROR', format, ...)
+    log(libs.ERROR, 'ERROR', format, ...)
 end
 
 
