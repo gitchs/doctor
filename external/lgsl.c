@@ -1,5 +1,7 @@
+#include <assert.h>
 #include <openssl/evp.h>
 #include <string.h>
+#include "gsl/gsl_sort_double.h"
 #include "lauxlib.h"
 #include "lua.h"
 #include "lualib.h"
@@ -11,6 +13,7 @@
 static size_t num2vector(lua_State* L, int index, double** vp) {
   size_t size = lua_rawlen(L, index);
   *vp = (double*)malloc(sizeof(double) * size);
+  assert(*vp != NULL);
   for (size_t i = 0; i < size; i++) {
     lua_pushinteger(L, i + 1);
     lua_gettable(L, index);
@@ -52,19 +55,25 @@ static int lgsl_status(lua_State* L) {
     lua_pushnil(L);
     lua_pushnil(L);
     lua_pushnil(L);
-    return 4;
+    lua_pushnil(L);
+    lua_pushnil(L);
+    return 6;
   }
   double* v = NULL;
   size_t size = num2vector(L, 1, &v);
+  gsl_sort(v, 1, size);
   double mean = gsl_stats_mean(v, 1, size);
   double std = gsl_stats_sd_m(v, 1, size, mean);
   double skew = gsl_stats_skew_m_sd(v, 1, size, mean, std);
   double kurt = gsl_stats_kurtosis_m_sd(v, 1, size, mean, std);
+  lua_pushnumber(L, v[0]); // min, max
+  lua_pushnumber(L, v[size-1]);
   lua_pushnumber(L, mean);
   lua_pushnumber(L, std);
   lua_pushnumber(L, skew);
   lua_pushnumber(L, kurt);
-  return 4;
+  free(v);
+  return 6;
 }
 
 static int lgsl_skew(lua_State* L) {
