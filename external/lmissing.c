@@ -53,14 +53,24 @@ static int lmissing_stat(lua_State* L) {
     lua_pushinteger(L, s.st_uid); lua_setfield(L, -2, "st_uid");
     lua_pushinteger(L, s.st_gid); lua_setfield(L, -2, "st_gid");
     lua_pushinteger(L, s.st_rdev); lua_setfield(L, -2, "st_rdev");
+    lua_pushinteger(L, s.st_blocks); lua_setfield(L, -2, "st_blocks");
+    lua_pushinteger(L, s.st_blksize); lua_setfield(L, -2, "st_blksize");
+
+#ifdef __linux__
+    lua_pushinteger(L, s.st_atime); lua_setfield(L, -2, "st_atime");
+    lua_pushinteger(L, s.st_ctime); lua_setfield(L, -2, "st_ctime");
+    lua_pushinteger(L, s.st_mtime); lua_setfield(L, -2, "st_mtime");
+#endif // __linux__
+
+#ifdef __APPLE__
     lua_pushinteger(L, s.st_atimespec.tv_sec); lua_setfield(L, -2, "st_atime");
     lua_pushinteger(L, s.st_ctimespec.tv_sec); lua_setfield(L, -2, "st_ctime");
     lua_pushinteger(L, s.st_mtimespec.tv_sec); lua_setfield(L, -2, "st_mtime");
     lua_pushinteger(L, s.st_birthtimespec.tv_sec); lua_setfield(L, -2, "st_birthtime");
-    lua_pushinteger(L, s.st_blocks); lua_setfield(L, -2, "st_blocks");
-    lua_pushinteger(L, s.st_blksize); lua_setfield(L, -2, "st_blksize");
     lua_pushinteger(L, s.st_flags); lua_setfield(L, -2, "st_flags");
     lua_pushinteger(L, s.st_gen); lua_setfield(L, -2, "st_gen");
+#endif // __APPLE__
+
     lua_pushinteger(L, s.st_size); lua_setfield(L, -2, "st_size");
     return 1;
 }
@@ -224,7 +234,11 @@ int luaopen_missing(lua_State* L) {
   DEFINE_LUA_CONST_INTEGER(L, "S_IFREG",  S_IFREG);
   DEFINE_LUA_CONST_INTEGER(L, "S_IFLNK",  S_IFLNK);
   DEFINE_LUA_CONST_INTEGER(L, "S_IFSOCK", S_IFSOCK);
+
+#ifdef S_IFWHT
+  // only works on macos
   DEFINE_LUA_CONST_INTEGER(L, "S_IFWHT",  S_IFWHT);
+#endif
 
   DEFINE_LUA_CONST_INTEGER(L, "RUSAGE_SELF", RUSAGE_SELF);
   DEFINE_LUA_CONST_INTEGER(L, "RUSAGE_CHILDREN", RUSAGE_CHILDREN);

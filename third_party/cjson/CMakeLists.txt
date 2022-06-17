@@ -50,8 +50,6 @@ if(NOT HAVE_ISINF)
     add_definitions(-DUSE_INTERNAL_ISINF)
 endif()
 
-set(_MODULE_LINK "${CMAKE_THREAD_LIBS_INIT}")
-get_filename_component(_lua_lib_dir ${LUA_LIBRARY} PATH)
 
 if(APPLE)
     set(CMAKE_SHARED_MODULE_CREATE_C_FLAGS
