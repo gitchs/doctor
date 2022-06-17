@@ -1,4 +1,4 @@
-#!/usr/bin/env lua
+#!/usr/bin/env doctor
 local logging = require'logging'
 local profileutils = require'profileutils'
 local gsl = require'gsl'
@@ -29,13 +29,17 @@ function libs.is_slow(tree2)
 end
 
 function libs.operator_skew_detection(tree2)
+    local retval = {}
     local summary = tree2.children[1]
     assert(summary.name == 'Summary', 'first children should be [SUMMARY]')
     local raw_summary = getmetatable(summary).raw
     assert(raw_summary ~= nil, 'getmetatable(summary).raw should not be nil')
     local duration_sec = tonumber(raw_summary:info_strings('Duration(ms)')) / 1000
+    if duration_sec < 20 then
+        -- 执行时间很短，倾斜分析没有必要
+        return retval
+    end
 
-    local retval = {}
     local gops = profileutils.group_operators(tree2)
     for oid, ops in pairs(gops) do
         assert(ops ~= nil, 'ops could not be nil')
@@ -47,14 +51,19 @@ function libs.operator_skew_detection(tree2)
             table.insert(total_times, op.counters['TotalTime'])
         end
         local min, max, mean, std = gsl.status(total_times)
-        if duration_sec < 20 or (max/1e9) < 20 then
+        local min_sec = min/1e9
+        local max_sec = max/1e9
+        if max_sec < 20 then
             -- 这种太小的值，没有检查的必要
             goto op_skew_continue
         end
-        local min_sec = min/1e9
+        if (max_sec - min_sec) < 30 then
+            -- range足够小的时候，不根据mean、std进行异常值的判断（意义很小）
+            goto op_skew_continue
+        end
         local up_bound = mean + 2 * std
         for i, op in ipairs(ops) do
-            if op.counters['TotalTime'] > up_bound then
+            if (op.counters['TotalTime'] > up_bound) then
                 table.insert(
                     retval,
                     string.format(
