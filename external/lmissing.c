@@ -6,6 +6,7 @@
  */
 #include <errno.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -18,16 +19,51 @@
 #include "lmissing.h"
 #include "lua.h"
 #include "lualib.h"
+#include "helper.h"
 
 static int lmissing_gettimeofday(lua_State* L) {
   // int gettimeofday(struct timeval *tp, void *tzp);
   struct timeval tv;
-  gettimeofday(&tv, NULL); // The gettimeofday() function returns 0 and no value is reserved to indicate an error. 
+  gettimeofday(&tv, NULL); // The gettimeofday() function returns 0 and no value is reserved to indicate an error.
   lua_pushinteger(L, tv.tv_sec);
   lua_pushinteger(L, tv.tv_usec);
   return 2;
 }
 
+static int lmissing_stat(lua_State* L) {
+    if (!lua_isstring(L, 1)) {
+        lua_pushnil(L);
+        return 1;
+    }
+    lua_newtable(L);
+    const char* const filename = lua_tostring(L, 1);
+    struct stat s;
+    bzero(&s, sizeof(s));
+    int rc = stat(filename, &s);
+    if (rc != 0) {
+        lua_pushinteger(L, errno);
+        lua_setfield(L, -2, "errno");
+        lua_pushstring(L, strerror(errno));
+        lua_setfield(L, -2, "error");
+        return 1;
+    }
+    lua_pushinteger(L, s.st_dev); lua_setfield(L, -2, "st_dev");
+    lua_pushinteger(L, s.st_mode); lua_setfield(L, -2, "st_mode");
+    lua_pushinteger(L, s.st_nlink); lua_setfield(L, -2, "st_nlink");
+    lua_pushinteger(L, s.st_uid); lua_setfield(L, -2, "st_uid");
+    lua_pushinteger(L, s.st_gid); lua_setfield(L, -2, "st_gid");
+    lua_pushinteger(L, s.st_rdev); lua_setfield(L, -2, "st_rdev");
+    lua_pushinteger(L, s.st_atimespec.tv_sec); lua_setfield(L, -2, "st_atime");
+    lua_pushinteger(L, s.st_ctimespec.tv_sec); lua_setfield(L, -2, "st_ctime");
+    lua_pushinteger(L, s.st_mtimespec.tv_sec); lua_setfield(L, -2, "st_mtime");
+    lua_pushinteger(L, s.st_birthtimespec.tv_sec); lua_setfield(L, -2, "st_birthtime");
+    lua_pushinteger(L, s.st_blocks); lua_setfield(L, -2, "st_blocks");
+    lua_pushinteger(L, s.st_blksize); lua_setfield(L, -2, "st_blksize");
+    lua_pushinteger(L, s.st_flags); lua_setfield(L, -2, "st_flags");
+    lua_pushinteger(L, s.st_gen); lua_setfield(L, -2, "st_gen");
+    lua_pushinteger(L, s.st_size); lua_setfield(L, -2, "st_size");
+    return 1;
+}
 
 static int lmissing_readdir(lua_State* L) {
     if (!lua_isstring(L, 1)) {
@@ -64,7 +100,6 @@ FAILED:
     return 2;
 }
 
-
 static int lmissing_day2date(lua_State* L) {
     if(!lua_isinteger(L, 1)) {
         lua_pushnil(L);
@@ -75,7 +110,6 @@ static int lmissing_day2date(lua_State* L) {
     lua_pushinteger(L, ts);
     return 1;
 }
-
 
 static int lmissing_isatty(lua_State* L) {
     int fd = lua_tonumber(L, 1);
@@ -167,6 +201,7 @@ static int lmissing_getrusage(lua_State* L) {
 }
 
 const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
+                                {"stat", lmissing_stat},
                                 {"getrusage", lmissing_getrusage},
                                 {"strptime", lmissing_strptime},
                                 {"getpid", lmissing_getpid},
@@ -179,15 +214,24 @@ const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
 
 int luaopen_missing(lua_State* L) {
   luaL_newlib(L, libs);
-  lua_pushinteger(L, RUSAGE_SELF);
-  lua_setfield(L, -2, "RUSAGE_SELF");
-  lua_pushinteger(L, RUSAGE_CHILDREN);
-  lua_setfield(L, -2, "RUSAGE_CHILDREN");
+
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFMT",   S_IFMT);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFIFO",  S_IFIFO);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFCHR",  S_IFCHR);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFDIR",  S_IFDIR);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFBLK",  S_IFBLK);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFREG",  S_IFREG);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFREG",  S_IFREG);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFLNK",  S_IFLNK);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFSOCK", S_IFSOCK);
+  DEFINE_LUA_CONST_INTEGER(L, "S_IFWHT",  S_IFWHT);
+
+  DEFINE_LUA_CONST_INTEGER(L, "RUSAGE_SELF", RUSAGE_SELF);
+  DEFINE_LUA_CONST_INTEGER(L, "RUSAGE_CHILDREN", RUSAGE_CHILDREN);
 #ifdef RUSAGE_THREAD
   // only works on Linux(since 2.6.26)
   // https://linux.die.net/man/2/getrusage
-  lua_pushinteger(L, RUSAGE_THREAD);
-  lua_setfield(L, -2, "RUSAGE_THREAD");
+  DEFINE_LUA_CONST_INTEGER(L, "RUSAGE_THREAD", RUSAGE_THREAD);
 #endif  // RUSAGE_THREAD
   return 1;
 }
