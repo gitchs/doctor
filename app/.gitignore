@@ -7,4 +7,4 @@ once.lua
 test.lua
 dump.sh
 parallel.py
-
+*.db

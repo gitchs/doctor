@@ -1,6 +1,7 @@
 #!/usr/bin/env doctor
 local os = require'os'
 local impala = require'impala'
+local missing = require'missing'
 local logging = require'logging'
 local iterators = require'iterators'
 local strategies = require'strategies'
@@ -35,15 +36,26 @@ CREATE TABLE IF NOT EXISTS m2(
     [[ CREATE UNIQUE INDEX IF NOT EXISTS idx_profile_query_id ON profile(query_id) ]],
 }
 
-function init_db()
-    local database = 'test'
-    local username = nil
-    local password = nil
-    local host = nil
-    local port = nil
-    local unix_socket = '/tmp/mysql.sock'
-    local env = require'luasql.mysql'.mysql()
-    local conn = env:connect(database, username, password, host, port, unix_socket)
+local function init_db(database)
+    -- local database = 'test'
+    -- local username = nil
+    -- local password = nil
+    -- local host = nil
+    -- local port = nil
+    -- local unix_socket = '/tmp/mysql.sock'
+    -- local env = require'luasql.mysql'.mysql()
+    -- local conn = env:connect(database, username, password, host, port, unix_socket)
+
+    if database == nil then
+        database = string.format('sqlite-%d.db', missing.getpid())
+        if os.getenv('DB_ROOT') ~= nil then
+            database = string.format('%s/%s', os.getenv('DB_ROOT'), database)
+        end
+        logging.info('arg database is nil, the generated one is "%s"', database)
+    end
+    local env = require'luasql.sqlite3'.sqlite3()
+    local conn = env:connect(database)
+
     for _, init_statement in ipairs(init_statements) do
         local ok, err = conn:execute(init_statement)
         if ok == nil then
@@ -61,7 +73,8 @@ local function main()
         logging.info('no input file')
         os.exit(1)
     end
-    local conn = init_db()
+    local database_filename = arg[2]
+    local conn = init_db(database_filename)
     for row in iterators.avro(filename) do
         local ok, err, tree = impala.parse_profile(row.profile)
         local result = strategies.test_profile(tree)
@@ -74,7 +87,7 @@ local function main()
         if sqlutisl.in_blacklist(sql) then
             goto next_row
         end
-        dbutils.insert_row(conn, 'profile', row)
+        -- dbutils.insert_row(conn, 'profile', row)
         local row = {
             query_id = tree:query_id(),
             query_type = query_type,
