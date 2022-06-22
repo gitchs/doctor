@@ -6,7 +6,7 @@ local logging = require'logging'
 local iterators = require'iterators'
 local strategies = require'strategies'
 local dbutils = require'dbutils'
-local sqlutisl = require'sqlutils'
+local sqlutils = require'sqlutils'
 
 local init_statements = {
     -- [[DROP TABLE IF EXISTS m2]],
@@ -84,7 +84,7 @@ local function main()
             goto next_row
         end
         local sql = summary:info_strings('Sql Statement')
-        if sqlutisl.in_blacklist(sql) then
+        if sqlutils.in_blacklist(sql) then
             goto next_row
         end
         -- dbutils.insert_row(conn, 'profile', row)
@@ -95,13 +95,15 @@ local function main()
             query_status = summary:info_strings('Query Status'),
             start_time = function() return string.format("'%s'",summary:info_strings('Start Time')) end,
             end_time = function() return string.format("'%s'",summary:info_strings('End Time')) end,
-            duration = tonumber(summary:info_strings('Duration(ms)')),
-            admission_wait = tonumber(summary:info_strings('Admission Wait') or '0'),
+            duration = tonumber(summary:info_strings('Duration(ms)') or '-1'),
+            admission_wait = tonumber(summary:info_strings('Admission Wait') or '-1'),
+            custer_memory_admitted = tonumber(summary:info_strings('Cluster Memory Admitted') or '-1'),
             is_slow = result.is_slow,
             has_skew_ops = false,
             coordinator = summary:info_strings('Coordinator'),
-            rows_produced = tonumber(summary:info_strings('Rows Produced')),
+            rows_produced = tonumber(summary:info_strings('Rows Produced') or '-1'),
             result = '',
+            sql_sign = sqlutils.sign(sql),
             sql = sql,
         }
         if result.skew_ops ~= nil and #result.skew_ops > 0 then

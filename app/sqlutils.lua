@@ -13,6 +13,7 @@ function libs.strip_comments(sql)
     local sql2 = re2.replace(sql, [[\/\*([^*]|\*[^\/])*\*\/\w*]], '')
     local bs = {sql2:byte(1, -1)}
     for i=#bs,1,-1 do
+        -- 删掉右侧多余空格
         -- \t  ==> 9
         -- \n  ==> 10
         -- ' ' ==> 32
