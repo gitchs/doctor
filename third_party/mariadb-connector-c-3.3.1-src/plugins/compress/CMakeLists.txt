@@ -11,13 +11,3 @@ REGISTER_PLUGIN(TARGET zlib
                 DEFAULT STATIC
                 SOURCES ${COMPRESS_PLUGIN_DIR}/c_zlib.c)
 
-#zstd compression
-IF(${ZSTD_FOUND})
-  INCLUDE_DIRECTORIES(${ZSTD_INCLUDE_DIRS})
-  REGISTER_PLUGIN(TARGET zstd
-                  TYPE MARIADB_CLIENT_COMPRESSION_PLUGIN
-                  CONFIGURATIONS DYNAMIC STATIC OFF
-                  DEFAULT DYNAMIC
-                  SOURCES ${COMPRESS_PLUGIN_DIR}/c_zstd.c
-                  LIBRARIES ${ZSTD_LIBRARIES})
-ENDIF()
