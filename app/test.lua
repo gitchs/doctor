@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS m2(
     query_status TEXT NOT NULL,
     coordinator VARCHAR(64) NOT NULL,
     rows_produced INT NOT NULL,
-    custer_memory_admitted VARCHAR(255) NOT NULL,
+    cluster_memory_admitted VARCHAR(255) NOT NULL,
     is_slow TINYINT NOT NULL,
     has_skew_ops TINYINT NOT NULL,
     start_time datetime NOT NULL,
@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS m2(
     duration INTEGER NOT NULL,
     admission_wait LONG NOT NULL,
     result LONGTEXT NOT NULL,
+    `sql_sign` VARCHAR(32) NOT NULL,
     `sql` LONGTEXT NOT NULL
 )
 ]],
@@ -98,7 +99,7 @@ local function main()
             end_time = function() return string.format("'%s'",summary:info_strings('End Time')) end,
             duration = tonumber(summary:info_strings('Duration(ms)') or '-1'),
             admission_wait = tonumber(summary:info_strings('Admission Wait') or '-1'),
-            custer_memory_admitted = tonumber(summary:info_strings('Cluster Memory Admitted') or '-1'),
+            cluster_memory_admitted = summary:info_strings('Cluster Memory Admitted') or '',
             is_slow = result.is_slow,
             has_skew_ops = false,
             coordinator = summary:info_strings('Coordinator'),
