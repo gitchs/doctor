@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS m2(
     query_status TEXT NOT NULL,
     coordinator VARCHAR(64) NOT NULL,
     rows_produced INT NOT NULL,
+    custer_memory_admitted VARCHAR(255) NOT NULL,
     is_slow TINYINT NOT NULL,
     has_skew_ops TINYINT NOT NULL,
     start_time datetime NOT NULL,
