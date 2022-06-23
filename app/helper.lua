@@ -3,6 +3,7 @@ local io = require'io'
 local impala = require'impala'
 local missing = require'missing'
 local profileutils = require'profileutils'
+local cjson = require'cjson'
 
 local libs = {}
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env doctor
 local impala = require'impala'
 local logging = require'logging'
+local cjson = require'cjson'
 
 
 local function main()

@@ -1,9 +1,8 @@
 #!/usr/bin/env doctor
 local impala = require'impala'
 local logging = require'logging'
-local strutils = require'strutils'
-local profileutils = require'profileutils'
 local strategies = require'strategies'
+local cjson = require'cjson'
 
 local function main()
     local filename = arg[1]

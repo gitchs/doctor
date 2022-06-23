@@ -7,6 +7,8 @@ local iterators = require'iterators'
 local sqlutils = require'sqlutils'
 local hdfsutils = require'hdfsutils'
 local limits = require'limits'
+local cjson = require'cjson'
+local impala = require'impala'
 
 local function init_db()
     local init_statements = {
