@@ -22,6 +22,9 @@
 #include "lua.h"
 #include "lualib.h"
 
+#define __USE_XOPEN
+#define _GNU_SOURCE
+
 static int lmissing_gettimeofday(lua_State* L) {
   // int gettimeofday(struct timeval *tp, void *tzp);
   struct timeval tv;
