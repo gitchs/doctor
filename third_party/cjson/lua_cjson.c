@@ -43,6 +43,7 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#include "lua_cjson.h"
 #include "strbuf.h"
 #include "fpconv.h"
 
@@ -693,8 +694,21 @@ static void json_append_data(lua_State *l, json_config_t *cfg,
         len = lua_array_length(l, cfg, json);
         if (len > 0)
             json_append_array(l, cfg, current_depth, json, len);
-        else
-            json_append_object(l, cfg, current_depth, json);
+        else {
+            int idx = lua_gettop(l);
+            lua_getmetatable(l, -1);
+            char is_array = 0;
+            if (lua_istable(l,-1)) {
+                lua_getfield(l, -1, "__is_array");
+                is_array = lua_isboolean(l, -1) & lua_toboolean(l, -1);
+            }
+            lua_settop(l, idx);
+            if (is_array) {
+                json_append_array(l, cfg, current_depth, json, len);
+            } else {
+                json_append_object(l, cfg, current_depth, json);
+            }
+        }
         break;
     case LUA_TNIL:
         strbuf_append_mem(json, "null", 4);
@@ -818,7 +832,6 @@ static int codepoint_to_utf8(char *utf8, int codepoint)
 
     return 0;
 }
-
 
 /* Called when index pointing to beginning of UTF-16 code escape: \uXXXX
  * \u is guaranteed to exist, but the remaining hex characters may be
@@ -1416,6 +1429,12 @@ static int lua_cjson_safe_new(lua_State *l)
 CJSON_EXPORT int luaopen_cjson(lua_State *l)
 {
     lua_cjson_new(l);
+
+    if (luaL_newmetatable(l, LUA_ARRAY_METATABLE) > 0) {
+        lua_pushboolean(l, 1);
+        lua_setfield(l, -2, "__is_array");
+        lua_pop(l, 1);
+    }
 
 #ifdef ENABLE_CJSON_GLOBAL
     /* Register a global "cjson" table. */

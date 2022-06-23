@@ -6,6 +6,13 @@ local profileutils = require'profileutils'
 local cjson = require'cjson'
 
 local libs = {}
+local array_metatable = {__is_array=true}
+
+function libs.new_array_table()
+    local o = {}
+    setmetatable(o, array_metatable)
+    return o
+end
 
 function libs.list_operators(filename)
     local fd = io.open(filename)

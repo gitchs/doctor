@@ -14,6 +14,7 @@
 extern "C" {
 #include "lauxlib.h"
 #include "lua.h"
+#include "lua_cjson.h"
 #include "lualib.h"
 
 const static char* const LUA_TRUNTIMEPROFILETREE_TYPE = "TRuntimeProfileTree*";
@@ -204,9 +205,11 @@ static int limpala_runtime_profile_node_event_sequences(lua_State* L) {
       return 1;
     }
     lua_newtable(L);
+    luaL_setmetatable(L, LUA_ARRAY_METATABLE);
     for (size_t i = 0; i < it->labels.size(); ++i) {
       lua_pushinteger(L, i + 1);
       lua_newtable(L);
+      luaL_setmetatable(L, LUA_ARRAY_METATABLE);
       lua_pushinteger(L, 1);
       lua_pushstring(L, it->labels.at(i).c_str());
       lua_settable(L, -3);
@@ -222,6 +225,7 @@ static int limpala_runtime_profile_node_event_sequences(lua_State* L) {
 
   // fetch all event_sequences
   lua_newtable(L);
+  luaL_setmetatable(L, LUA_ARRAY_METATABLE);
   int es_index = 1;
   for (auto it = node->event_sequences.begin();
        it != node->event_sequences.end(); ++it) {
