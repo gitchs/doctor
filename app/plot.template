@@ -1,0 +1,10 @@
+#!/usr/bin/env gnuplot
+set xdata time;
+set timefmt '%s'
+set format x '%H:%M';
+set xlabel 'datetime';
+set datafile sep ',';
+set grid;
+
+plot 'memline.csv' using 1:2 with line;
+pause mouse close;
