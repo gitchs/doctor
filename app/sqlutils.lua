@@ -4,20 +4,19 @@ local hashlib = require'hashlib'
 
 local libs = {}
 
-
 local sql_blacklist_re_list = {
     [[(^(?i)select [0-9]+$)]]
 }
 
 function libs.strip_comments(sql)
     local sql2 = re2.replace(sql, [[\/\*([^*]|\*[^\/])*\*\/\w*]], '')
-    local bs = {sql2:byte(1, -1)}
-    for i=#bs,1,-1 do
+    for i=#sql2,1,-1 do
         -- 删掉右侧多余空格
         -- \t  ==> 9
         -- \n  ==> 10
         -- ' ' ==> 32
-        if bs[i]~= 9 and bs[i]~=10 and bs[i]~=32 then
+        local c = sql2:byte(i, i)
+        if c ~= 9 and c ~=10 and c ~=32 then
             return sql2:sub(1,i)
         end
     end

@@ -11,6 +11,8 @@ function libs.Path:__tostring()
 end
 
 function libs.Path:new(path)
+    -- the system path has a length limit, it's safe to use str:byte(1, -1) here
+    -- if something is wrong, just let it crash
     local bs = {path:byte(1,-1)}
     local basename = nil
     local name = nil

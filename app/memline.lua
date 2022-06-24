@@ -48,7 +48,7 @@ local function db_it(db_filename)
 FROM
 	m2
 WHERE
---query_state = 'EXCEPTION' AND
+resource_pool = 'root.default' AND
 NOT query_status LIKE 'Admission for query exceeded timeout%'
 AND exec_duration > 5
 ORDER BY exec_time
@@ -58,7 +58,7 @@ ORDER BY exec_time
     if cursor == nil then
         print(err)
     end
-    assert(cursor ~= nil)
+    assert(cursor ~= nil, err)
     if cursor == nil then
         return nil
     end
@@ -135,11 +135,13 @@ function Status:report()
         local query = self.queries[i]
         mem_sum = mem_sum + query.cluster_memory_admitted
     end
-    mem_sum = mem_sum / 1024 / 1024 / 1024 / 1024
-    return string.format('%s,%s,%d', self.now, mem_sum, #self.queries)
+    mem_sum = mem_sum / 1024 / 1024 / 1024
+    return string.format('%s,%s,%s', self.now, #self.queries, mem_sum)
 end
 
 local function main()
+    -- 目前仅绘制了预估的内存占用；
+    -- TODO: 统计实际的内存占用
     local db_filename = arg[1]
     if db_filename == nil then
         logging.error('no input database')
