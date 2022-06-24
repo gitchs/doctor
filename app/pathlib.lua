@@ -10,7 +10,7 @@ function libs.Path:__tostring()
     return self.path
 end
 
-function libs.Path:new(path)
+function libs.Path.new(path)
     -- the system path has a length limit, it's safe to use str:byte(1, -1) here
     -- if something is wrong, just let it crash
     local bs = {path:byte(1,-1)}
@@ -40,7 +40,7 @@ function libs.Path:new(path)
         name = name,
         path = path,
     }
-    setmetatable(o, self)
+    setmetatable(o, libs.Path)
     return o
 end
 
@@ -75,7 +75,7 @@ function libs.Path:listdir()
             return nil
         end
         index = index + 1
-        return libs.Path:new(string.format('%s/%s', self.path, f))
+        return libs.Path.new(string.format('%s/%s', self.path, f))
     end
 end
 
