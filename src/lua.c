@@ -428,6 +428,22 @@ static int handle_luainit (lua_State *L) {
 #define lua_saveline(L,line)	((void)L, add_history(line))
 #define lua_freeline(L,b)	((void)L, free(b))
 
+#elif defined(LUA_USE_LINENOISE)
+#include "linenoise.h"
+
+#define LINENOISE_HISTORY_FILENAME_ENV "DOCTOR_HISTORY"
+#define LINENOISE_HISTORY_FILENAME ".doctor_history"
+
+#define lua_initreadline(L) do {\
+    linenoiseHistoryLoad(getenv(LINENOISE_HISTORY_FILENAME_ENV)==NULL?LINENOISE_HISTORY_FILENAME:getenv(LINENOISE_HISTORY_FILENAME_ENV));\
+} while(0)
+#define lua_readline(L,b,p)	((void)L, ((b)=linenoise(p)) != NULL)
+#define lua_saveline(L, line) do {\
+    linenoiseHistoryAdd(line);\
+    linenoiseHistorySave(getenv(LINENOISE_HISTORY_FILENAME_ENV)==NULL?LINENOISE_HISTORY_FILENAME:getenv(LINENOISE_HISTORY_FILENAME_ENV));\
+} while(0)
+#define lua_freeline(L,b) {(void)L; (void)b;}
+
 #else				/* }{ */
 
 #define lua_initreadline(L)  ((void)L)

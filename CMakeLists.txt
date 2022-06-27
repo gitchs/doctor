@@ -31,10 +31,12 @@ include_directories(
     third_party/mariadb-connector-c-3.3.1-src/copygen
     third_party/xxHash-0.8.1
     third_party/re2-2022-06-01/
+    third_party/linenoise/
     ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${GSL_INCLUDE_DIRS}
 )
+add_subdirectory(third_party/linenoise/)
 add_subdirectory(third_party/snappy-1.1.9)
 add_subdirectory(third_party/avro-cpp-1.11.0)
 add_subdirectory(third_party/thrift-0.16.0)
@@ -106,12 +108,12 @@ set(LUA_LIB_SRC
 )
 
 add_compile_definitions(
-  LUA_USE_READLINE=ON
+  LUA_USE_LINENOISE=ON
   LUA_USE_LINUX=ON
 )
 set(LUA_LINK_LIBS
     m
-    readline
+    linenoise
     dl
     cjson
 )
