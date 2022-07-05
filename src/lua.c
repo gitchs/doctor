@@ -9,10 +9,11 @@
 #include "lprefix.h"
 
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <unistd.h>
 #include <signal.h>
 
 #include "lua.h"
@@ -432,15 +433,27 @@ static int handle_luainit (lua_State *L) {
 #include "linenoise.h"
 
 #define LINENOISE_HISTORY_FILENAME_ENV "DOCTOR_HISTORY"
-#define LINENOISE_HISTORY_FILENAME ".doctor_history"
+#define LINENOISE_HISTORY_BASENAME ".doctor_history"
+static char LINENOISE_HISTORY_FILENAME[PATH_MAX + 32] = {0};
 
 #define lua_initreadline(L) do {\
-    linenoiseHistoryLoad(getenv(LINENOISE_HISTORY_FILENAME_ENV)==NULL?LINENOISE_HISTORY_FILENAME:getenv(LINENOISE_HISTORY_FILENAME_ENV));\
+    char* s = getenv(LINENOISE_HISTORY_FILENAME_ENV); \
+    if (s == NULL) { \
+        s = getenv("HOME"); \
+        if (s == NULL) { \
+            s = getcwd(NULL, 0); \
+        } \
+    } \
+    strcpy(LINENOISE_HISTORY_FILENAME, s); \
+    strcpy(LINENOISE_HISTORY_FILENAME + strlen(LINENOISE_HISTORY_FILENAME), "/" LINENOISE_HISTORY_BASENAME); \
+    linenoiseHistoryLoad(LINENOISE_HISTORY_FILENAME); \
 } while(0)
 #define lua_readline(L,b,p)	((void)L, ((b)=linenoise(p)) != NULL)
 #define lua_saveline(L, line) do {\
     linenoiseHistoryAdd(line);\
-    linenoiseHistorySave(getenv(LINENOISE_HISTORY_FILENAME_ENV)==NULL?LINENOISE_HISTORY_FILENAME:getenv(LINENOISE_HISTORY_FILENAME_ENV));\
+    if (LINENOISE_HISTORY_FILENAME[0] != '\0') { \
+        linenoiseHistorySave(LINENOISE_HISTORY_FILENAME); \
+    } \
 } while(0)
 #define lua_freeline(L,b) {(void)L; (void)b;}
 
