@@ -7,22 +7,24 @@ local function main()
         logging.error('afilter.lua AVRO_FILENAME QUERY_ID')
         return
     end
-    local filename = arg[1]
-    local query_id = arg[2]
+    local query_id = arg[1]
 
     local profile = nil
-    for row in iterators.avro(filename) do
-        if row.query_id == query_id then
-            profile = row.profile
-            break
+    for findex = 2, #arg do
+        local filename = arg[findex]
+        for row in iterators.avro(filename) do
+            if row.query_id == query_id then
+                profile = row.profile
+                break
+            end
+        end
+        if profile ~= nil then
+            print(profile)
+            return
         end
     end
-    if profile == nil then
-        logging.error('could not search query "%s" from "%s"', query_id, filename)
-        return
-    end
+    logging.error('could not search query "%s" from "%s"', query_id, filename)
 
-    print(profile)
 
 end
 
