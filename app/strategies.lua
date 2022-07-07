@@ -1,9 +1,69 @@
 #!/usr/bin/env doctor
 local logging = require'logging'
+local strutils = require'strutils'
 local profileutils = require'profileutils'
+local limits = require'limits'
 local gsl = require'gsl'
 
 local libs = {}
+
+function libs.hdfs_statics(tree2)
+    -- BytesRead少于500M的算子，如果时间少于1分钟，默认不慢
+    local gops = profileutils.group_operators(tree2)
+    if gops == nil then
+        return {}
+    end
+    local retval = {}
+    for oid, ops in pairs(gops) do
+        if #ops == 0 then 
+            goto NEXT_OP_GROUP
+        end
+        if not strutils.startswith(ops[1].name, 'HDFS_SCAN_NODE') then
+            goto NEXT_OP_GROUP
+        end
+        retval[oid] = {}
+        retval[oid].sum_bytes_read = 0
+        retval[oid].sum_bytes_read_local = 0
+        retval[oid].sum_bytes_read_shortcircuit = 0
+        retval[oid].sum_bytes_read_remote = 0
+        retval[oid].sum_bytes_read_remote_unexpected = 0
+        retval[oid].max_throughput = ops[1].counters['TotalReadThroughput']
+        retval[oid].min_throughtput = ops[1].counters['TotalReadThroughput']
+        for index = 2, #ops do
+            local op = ops[index]
+            local counters = op.counters
+            local throughput = counters['TotalReadThroughput'] or 0
+            if throughput < retval[oid].min_throughtput then
+                retval[oid].min_throughtput = throughput
+            end
+            if throughput > retval[oid].max_throughput then
+                retval[oid].max_throughput = throughput
+            end
+            retval[oid].sum_bytes_read = retval[oid].sum_bytes_read + (counters['BytesRead'] or 0)
+            retval[oid].sum_bytes_read_local = retval[oid].sum_bytes_read_local + (counters['BytesReadLocal'] or 0)
+            retval[oid].sum_bytes_read_shortcircuit = retval[oid].sum_bytes_read_shortcircuit + (counters['BytesReadShortCircuit'] or 0)
+            retval[oid].sum_bytes_read_remote_unexpected = retval[oid].sum_bytes_read_remote_unexpected + (counters['BytesReadRemoteUnexpected'] or 0)
+        end
+        retval[oid].sum_bytes_read_remote = retval[oid].sum_bytes_read - retval[oid].sum_bytes_read_local
+
+        -- 注意，这里开始，单位变成了MB，前面不处理是为了减少"除法操作"
+        -- 注意，这里开始，单位变成了MB，前面不处理是为了减少"除法操作"
+        -- 注意，这里开始，单位变成了MB，前面不处理是为了减少"除法操作"
+        retval[oid].sum_bytes_read = retval[oid].sum_bytes_read/1048576.0
+        retval[oid].sum_bytes_read_local = retval[oid].sum_bytes_read_local/1048576.0
+        retval[oid].sum_bytes_read_shortcircuit = retval[oid].sum_bytes_read_shortcircuit/1048576.0
+        retval[oid].sum_bytes_read_remote = retval[oid].sum_bytes_read_remote/1048576.0
+        retval[oid].sum_bytes_read_remote_unexpected = retval[oid].sum_bytes_read_remote_unexpected/1048576.0
+        retval[oid].max_throughput = retval[oid].max_throughput/1048576.0
+        if retval[oid].min_throughtput == limits.LLONG_MAX then -- 这个需要特殊格式化
+            retval[oid].min_throughtput = 0
+        else
+            retval[oid].min_throughtput = retval[oid].min_throughtput/1048576.0
+        end
+        ::NEXT_OP_GROUP::
+    end
+    return retval
+end
 
 function libs.is_slow(tree2)
     -- -1 test if not suitable for this profile
@@ -98,9 +158,8 @@ function libs.operator_skew_detection(tree2)
     return retval
 end
 
-function libs.test_profile(tree)
+function libs.test_profile(tree2)
     local retval = {}
-    local tree2 = profileutils.build_tree(tree)
     local r = libs.is_slow(tree2)
     retval.is_slow = r
     if r < 0 then

@@ -11,3 +11,7 @@ parallel.py
 log
 log.*
 plot
+t2.lua
+*.data
+*.svg
+

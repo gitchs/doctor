@@ -47,6 +47,7 @@ SELECT query_id
 ,end_time
 ,duration
 ,admission_wait
+,hdfs_statics
 ,result FROM m2''')
     db.commit()
 

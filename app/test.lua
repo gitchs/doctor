@@ -1,10 +1,12 @@
 #!/usr/bin/env doctor
 local os = require'os'
+local cjson = require'cjson'
 local impala = require'impala'
 local missing = require'missing'
 local logging = require'logging'
 local iterators = require'iterators'
 local strategies = require'strategies'
+local profileutils = require'profileutils'
 local dbutils = require'dbutils'
 local sqlutils = require'sqlutils'
 
@@ -21,6 +23,7 @@ CREATE TABLE IF NOT EXISTS m2(
     coordinator VARCHAR(64) NOT NULL,
     rows_produced INT NOT NULL,
     cluster_memory_admitted VARCHAR(255) NOT NULL,
+    hdfs_statics TEXT NOT NULL,
     is_slow TINYINT NOT NULL,
     has_skew_ops TINYINT NOT NULL,
     start_time datetime NOT NULL,
@@ -81,7 +84,8 @@ local function main()
     local conn = init_db(database_filename)
     for row in iterators.avro(filename) do
         local ok, err, tree = impala.parse_profile(row.profile)
-        local result = strategies.test_profile(tree)
+        local tree2 = profileutils.build_tree(tree)
+        local result = strategies.test_profile(tree2)
         local summary = tree:node_at(2)
         local query_type = summary:info_strings('Query Type')
         if query_type ~= 'QUERY' and query_type ~= 'DML' then
@@ -104,6 +108,7 @@ local function main()
             duration = tonumber(summary:info_strings('Duration(ms)') or '-1'),
             admission_wait = tonumber(summary:info_strings('Admission Wait') or '-1'),
             cluster_memory_admitted = summary:info_strings('Cluster Memory Admitted') or '',
+            hdfs_statics = cjson.encode(strategies.hdfs_statics(tree2)),
             is_slow = result.is_slow,
             has_skew_ops = false,
             coordinator = summary:info_strings('Coordinator'),
