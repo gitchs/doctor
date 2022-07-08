@@ -6,7 +6,6 @@ once.lua
 *.sql
 test.lua
 dump.sh
-parallel.py
 *.db
 log
 log.*
