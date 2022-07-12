@@ -28,13 +28,13 @@ function libs.hdfs_statics(tree2)
         retval[oid].sum_bytes_read_remote = 0
         retval[oid].sum_bytes_read_remote_unexpected = 0
         retval[oid].max_throughput = ops[1].counters['TotalReadThroughput']
-        retval[oid].min_throughtput = ops[1].counters['TotalReadThroughput']
+        retval[oid].min_throughput = ops[1].counters['TotalReadThroughput']
         for index = 2, #ops do
             local op = ops[index]
             local counters = op.counters
             local throughput = counters['TotalReadThroughput'] or 0
-            if throughput < retval[oid].min_throughtput then
-                retval[oid].min_throughtput = throughput
+            if throughput < retval[oid].min_throughput then
+                retval[oid].min_throughput = throughput
             end
             if throughput > retval[oid].max_throughput then
                 retval[oid].max_throughput = throughput
@@ -55,10 +55,10 @@ function libs.hdfs_statics(tree2)
         retval[oid].sum_bytes_read_remote = retval[oid].sum_bytes_read_remote/1048576.0
         retval[oid].sum_bytes_read_remote_unexpected = retval[oid].sum_bytes_read_remote_unexpected/1048576.0
         retval[oid].max_throughput = retval[oid].max_throughput/1048576.0
-        if retval[oid].min_throughtput == limits.LLONG_MAX then -- 这个需要特殊格式化
-            retval[oid].min_throughtput = 0
+        if retval[oid].min_throughput == limits.LLONG_MAX then -- 这个需要特殊格式化
+            retval[oid].min_throughput = 0
         else
-            retval[oid].min_throughtput = retval[oid].min_throughtput/1048576.0
+            retval[oid].min_throughput = retval[oid].min_throughput/1048576.0
         end
         ::NEXT_OP_GROUP::
     end

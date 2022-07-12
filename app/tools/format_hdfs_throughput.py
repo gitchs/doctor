@@ -19,6 +19,7 @@ SELECT
 FROM m2
 WHERE hdfs_statics != '{}' AND `duration`>10000 '''
     with open(cli_configure.output, 'w', encoding='utf8') as fd:
+        fd.write('ts,query_id,oid,min_throughput,max_throughput,sum_bytes_read\n')
         conn = sqlite3.connect(cli_configure.db)
         cursor = conn.execute(sql)
         for row in cursor:
@@ -26,7 +27,8 @@ WHERE hdfs_statics != '{}' AND `duration`>10000 '''
             start_ts = row[1]
             statics = json.loads(row[2])
             for oid, op in statics.items(): # pylint: disable=C0103
-                line = f'{start_ts},{query_id},{oid},{op["min_throughtput"]:.2f}\n'
+                line = f'{start_ts},{query_id},{oid},{op["min_throughput"]:.2f},'\
+                   f'{op["max_throughput"]:.2f},{op["sum_bytes_read"]:.2f}\n'
                 fd.write(line)
 
 
