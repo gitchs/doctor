@@ -13,5 +13,5 @@ set(LUASQL_SRCS
 add_compile_definitions(LUASQL_VERSION_NUMBER="2.6.0")
 
 add_library(LUASQL STATIC ${LUASQL_SRCS})
-target_link_libraries(LUASQL sqlite3 libmariadb_s ${OPENSSL_LIBRARIES})
+target_link_libraries(LUASQL sqlite3_a libmariadb_s ${OPENSSL_LIBRARIES})
 

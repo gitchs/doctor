@@ -32,10 +32,12 @@ include_directories(
     third_party/xxHash-0.8.1
     third_party/re2-2022-06-01/
     third_party/linenoise/
+    third_party/sqlite-amalgamation-3390000/
     ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${GSL_INCLUDE_DIRS}
 )
+add_subdirectory(third_party/sqlite-amalgamation-3390000/)
 add_subdirectory(third_party/linenoise/)
 add_subdirectory(third_party/snappy-1.1.9)
 add_subdirectory(third_party/avro-cpp-1.11.0)
@@ -136,7 +138,7 @@ target_link_libraries(doctor
     lua_external
     LUASQL
     libmariadb_s
-    sqlite3
+    sqlite3_a
     xxhash
     re2
     ${DOCTOR_LINK_LIBS}
