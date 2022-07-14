@@ -2,6 +2,7 @@
 local impala = require'impala'
 local logging = require'logging'
 local strategies = require'strategies'
+local profileutils = require'profileutils'
 local cjson = require'cjson'
 
 local function main()
@@ -15,7 +16,8 @@ local function main()
     local raw = fd:read('*all')
     fd:close()
     local ok, err, tree = impala.parse_profile(raw)
-    local result = strategies.test_profile(tree)
+    local tree2 = profileutils.build_tree(tree)
+    local result = strategies.test_profile(tree2)
     print(cjson.encode(result))
 end
 
