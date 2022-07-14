@@ -1,7 +1,5 @@
 #!/usr/bin/env doctor
 local os = require'os'
-local math = require'math'
-local cjson = require'cjson'
 local missing = require'missing'
 local strutils = require'strutils'
 

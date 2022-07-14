@@ -1,5 +1,6 @@
 #!/usr/bin/env doctor
 local strutils = require'strutils'
+local limits = require'limits'
 local profileutils = require'profileutils'
 local gsl = require'gsl'
 
@@ -39,17 +40,17 @@ function libs.hdfs_statics(tree2)
             goto NEXT_OP_GROUP
         end
         retval[oid] = {}
-        retval[oid].sum_rows_read = ops[1].counters['RowsRead']
-        retval[oid].sum_rows_returned = ops[1].counters['RowsReturned']
+        retval[oid].sum_rows_read = ops[1].counters['RowsRead'] or 0
+        retval[oid].sum_rows_returned = ops[1].counters['RowsReturned'] or 0
         retval[oid].rows_filter_rate = 0
-        retval[oid].sum_bytes_read = ops[1].counters['BytesRead']
-        retval[oid].sum_bytes_read_local = ops[1].counters['BytesReadLocal']
-        retval[oid].sum_bytes_read_shortcircuit = ops[1].counters['BytesReadShortCircuit']
+        retval[oid].sum_bytes_read = ops[1].counters['BytesRead'] or 0
+        retval[oid].sum_bytes_read_local = ops[1].counters['BytesReadLocal'] or 0
+        retval[oid].sum_bytes_read_shortcircuit = ops[1].counters['BytesReadShortCircuit'] or 0
         retval[oid].sum_bytes_read_remote = 0
-        retval[oid].sum_bytes_read_remote_unexpected = ops[1].counters['BytesReadRemoteUnexpected']
-        retval[oid].sum_throughput = ops[1].counters['TotalReadThroughput']
-        retval[oid].max_throughput = ops[1].counters['TotalReadThroughput']
-        retval[oid].min_throughput = ops[1].counters['TotalReadThroughput']
+        retval[oid].sum_bytes_read_remote_unexpected = ops[1].counters['BytesReadRemoteUnexpected'] or 0
+        retval[oid].sum_throughput = ops[1].counters['TotalReadThroughput'] or 0
+        retval[oid].max_throughput = ops[1].counters['TotalReadThroughput'] or 0
+        retval[oid].min_throughput = ops[1].counters['TotalReadThroughput'] or limits.LLONG_MAX
         for index = 2, #ops do
             local op = ops[index]
             local counters = op.counters
@@ -69,7 +70,13 @@ function libs.hdfs_statics(tree2)
             retval[oid].sum_bytes_read_remote_unexpected = retval[oid].sum_bytes_read_remote_unexpected + (counters['BytesReadRemoteUnexpected'] or 0)
         end
         retval[oid].sum_bytes_read_remote = retval[oid].sum_bytes_read - retval[oid].sum_bytes_read_local
-        retval[oid].rows_filter_rate = retval[oid].sum_rows_returned / retval[oid].sum_rows_read * 100
+        if retval[oid].sum_rows_read > 0 then
+            retval[oid].rows_filter_rate = retval[oid].sum_rows_returned / retval[oid].sum_rows_read * 100
+        end
+        if retval[oid].min_throughput == limits.LLONG_MAX then
+            -- reset to zero
+            retval[oid].min_throughput = 0
+        end
 
         -- 注意，这里开始，单位变成了MB，前面不处理是为了减少"除法操作"
         -- 注意，这里开始，单位变成了MB，前面不处理是为了减少"除法操作"

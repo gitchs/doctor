@@ -16,9 +16,12 @@ local function main()
     local raw = fd:read('*all')
     fd:close()
     local ok, err, tree = impala.parse_profile(raw)
+    assert(ok and err == nil)
     local tree2 = profileutils.build_tree(tree)
     local result = strategies.test_profile(tree2)
     print(cjson.encode(result))
 end
 
-main()
+if not pcall(debug.getlocal, 4, 1) then
+    main()
+end

@@ -169,4 +169,6 @@ local function main()
     end
 end
 
-main()
+if not pcall(debug.getlocal, 4, 1) then
+    main()
+end

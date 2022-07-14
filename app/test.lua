@@ -84,6 +84,7 @@ local function main()
     local conn = init_db(database_filename)
     for row in iterators.avro(filename) do
         local ok, err, tree = impala.parse_profile(row.profile)
+        assert(ok and err == nil)
         local tree2 = profileutils.build_tree(tree)
         local result = strategies.test_profile(tree2)
         local summary = tree:node_at(2)
@@ -96,7 +97,7 @@ local function main()
             goto next_row
         end
         -- dbutils.insert_row(conn, 'profile', row)
-        local row = {
+        local db_row = {
             query_id = tree:query_id(),
             query_type = query_type,
             query_state = summary:info_strings('Query State'),
@@ -118,14 +119,17 @@ local function main()
             sql = sql,
         }
         if result.skew_ops ~= nil and #result.skew_ops > 0 then
-            row.has_skew_ops = true
+            db_row.has_skew_ops = true
         end
-        if row.has_skew_ops then
-            row.result = table.concat(result.skew_ops, '\n')
+        if db_row.has_skew_ops then
+            db_row.result = table.concat(result.skew_ops, '\n')
         end
-        dbutils.insert_row(conn, 'm2', row)
+        dbutils.insert_row(conn, 'm2', db_row)
         ::next_row::
     end
 end
 
-main()
+if not pcall(debug.getlocal, 4, 1) then
+    -- https://stackoverflow.com/questions/49375638/how-to-determine-whether-my-code-is-running-in-a-lua-module
+    main()
+end
