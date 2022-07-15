@@ -24,6 +24,31 @@
 
 #define __USE_XOPEN
 #define _GNU_SOURCE
+extern int optreset;
+
+static int lmissing_optreset(lua_State* L) {
+  optreset = 1;
+  optind = 0;
+  lua_pushboolean(L, 1);
+  return 1;
+}
+
+static int lmissing_inc_opt_index(lua_State* L) {
+  optind++;
+  lua_pushboolean(L, 1);
+  return 1;
+}
+
+static int lmissing_getopt(lua_State* L) {
+  const size_t argc = lua_tointeger(L, 1);
+  char* const* args = lua_touserdata(L, 2);
+  const char* const optstr = lua_tostring(L, 3);
+  int retval = getopt(argc, args, optstr);
+  lua_pushinteger(L, optind);
+  lua_pushinteger(L, retval);
+  lua_pushstring(L, optarg);
+  return 3;
+}
 
 static int lmissing_gettimeofday(lua_State* L) {
   // int gettimeofday(struct timeval *tp, void *tzp);
@@ -258,13 +283,21 @@ static int lmissing_uname(lua_State* L) {
   return 1;
 }
 
-const static luaL_Reg libs[] = {
-    {"mkdir", lmissing_mkdir},         {"stat", lmissing_stat},
-    {"getrusage", lmissing_getrusage}, {"strptime", lmissing_strptime},
-    {"getpid", lmissing_getpid},       {"getcwd", lmissing_getcwd},
-    {"isatty", lmissing_isatty},       {"readdir", lmissing_readdir},
-    {"day2date", lmissing_day2date},   {"gettimeofday", lmissing_gettimeofday},
-    {"uname", lmissing_uname},         {NULL, NULL}};
+const static luaL_Reg libs[] = {{"mkdir", lmissing_mkdir},
+                                {"stat", lmissing_stat},
+                                {"getrusage", lmissing_getrusage},
+                                {"strptime", lmissing_strptime},
+                                {"getpid", lmissing_getpid},
+                                {"getcwd", lmissing_getcwd},
+                                {"isatty", lmissing_isatty},
+                                {"readdir", lmissing_readdir},
+                                {"day2date", lmissing_day2date},
+                                {"gettimeofday", lmissing_gettimeofday},
+                                {"optreset", lmissing_optreset},
+                                {"getopt", lmissing_getopt},
+                                {"inc_opt_index", lmissing_inc_opt_index},
+                                {"uname", lmissing_uname},
+                                {NULL, NULL}};
 
 int luaopen_missing(lua_State* L) {
   luaL_newlib(L, libs);

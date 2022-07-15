@@ -41,6 +41,7 @@
 #include "../external/lhashlib.h"
 #include "../external/lre2.h"
 #include "../external/llimits.h"
+#include "../external/lcarray.h"
 #include "lua_cjson.h"
 #include "luasql.h"
 
@@ -71,6 +72,7 @@ static const luaL_Reg loadedlibs[] = {
   {"luasql.sqlite3", luaopen_luasql_sqlite3},
   {"luasql.mysql", luaopen_luasql_mysql},
   {"gsl", luaopen_gsl},
+  {"carray", luaopen_carray},
   {NULL, NULL}
 };
 

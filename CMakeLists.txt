@@ -69,6 +69,7 @@ set(LUA_EXTERNAL_LIB_SRC
     external/lre2.cc
     external/lgsl.c
     external/llimits.c
+    external/lcarray.c
 )
 add_library(lua_external STATIC ${LUA_EXTERNAL_LIB_SRC})
 
