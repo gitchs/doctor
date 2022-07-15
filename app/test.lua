@@ -9,6 +9,7 @@ local strategies = require'strategies'
 local profileutils = require'profileutils'
 local dbutils = require'dbutils'
 local sqlutils = require'sqlutils'
+local optlib = require'optlib'
 
 local init_statements = {
     -- [[DROP TABLE IF EXISTS m2]],
@@ -74,15 +75,36 @@ local function init_db(database)
     return conn, env
 end
 
+
+local function cli_init()
+    local retval = {
+        avro_file = nil,
+        database_file = nil,
+        save_profile = false,
+    }
+    local parser = optlib.Parser.new()
+    local it = parser:feed(arg, "f:p?d:")
+    for is_option, option, value in it do
+        assert(is_option, string.format('invalid option "%s"', value))
+        if option == 'p' then
+            retval.save_profile = true
+        elseif option == 'd' then
+            retval.database_file = value
+        elseif option == 'f' then
+            retval.avro_file = value
+        end
+    end
+    return retval
+end
+
 local function main()
-    local filename = arg[1]
-    if filename == nil then
+    local cli_configure = cli_init()
+    if cli_configure.avro_file== nil then
         logging.info('no input file')
         os.exit(1)
     end
-    local database_filename = arg[2]
-    local conn = init_db(database_filename)
-    for row in iterators.avro(filename) do
+    local conn = init_db(cli_configure.database_file)
+    for row in iterators.avro(cli_configure.avro_file) do
         local ok, err, tree = impala.parse_profile(row.profile)
         assert(ok and err == nil)
         local tree2 = profileutils.build_tree(tree)
@@ -96,7 +118,9 @@ local function main()
         if sqlutils.in_blacklist(sql) then
             goto next_row
         end
-        -- dbutils.insert_row(conn, 'profile', row)
+        if cli_configure.save_profile then
+            dbutils.insert_row(conn, 'profile', row)
+        end
         local db_row = {
             query_id = tree:query_id(),
             query_type = query_type,

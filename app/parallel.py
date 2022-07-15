@@ -16,6 +16,7 @@ def task(f: Path) -> int:
     child_args = [
         str(Path(__file__).parent.joinpath('doctor').absolute()),
         str(Path(__file__).parent.joinpath('test.lua').absolute()),
+        '-f',
         str(f),
     ]
     with Popen(child_args, cwd=str(Path(__file__).parent.absolute())) as child:
