@@ -1,5 +1,6 @@
 #!/usr/bin/env doctor
 local os = require'os'
+local debug = require'debug'
 local missing = require'missing'
 local strutils = require'strutils'
 
@@ -22,6 +23,11 @@ local function log(lnum, level, format, ...)
         return
     end
     local message = nil
+    local _, dinfo = pcall(debug.getinfo, 4);
+    dinfo = dinfo or {
+        source = '[UNKNOWN]',
+        currentline = -1,
+    };
     if type(format) ~= 'string' then
         message = tostring(format)
         if strutils.startswith(message, 'table:') and type(format) == 'table' then
@@ -35,7 +41,7 @@ local function log(lnum, level, format, ...)
     end
     local sec, usec = missing.gettimeofday()
     local now = os.date('%Y-%m-%d %H:%M:%S', sec)
-    io.stderr:write(string.format('[%s %s.%06d] %s\n', level, now, usec, message))
+    io.stderr:write(string.format('[%s %s.%06d %s:%d] %s\n', level, now, usec, dinfo.source, dinfo.currentline, message))
 end
 
 libs.debug = function (format, ...)
