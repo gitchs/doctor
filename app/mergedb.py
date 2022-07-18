@@ -23,16 +23,20 @@ def main():
     if len(cli_configure.db) > 1:
         db_filename = cli_configure.db[0]
         attach_sql = f"ATTACH DATABASE '{db_filename}' AS src_db"
-        ctas_sql = "CREATE TABLE m2 AS SELECT * FROM src_db.m2"
+        ctas_sql0 = "CREATE TABLE m2 AS SELECT * FROM src_db.m2"
+        ctas_sql1 = "CREATE TABLE profile AS SELECT * FROM src_db.profile"
         db.execute(attach_sql)
-        db.execute(ctas_sql)
+        db.execute(ctas_sql0)
+        db.execute(ctas_sql1)
         db.commit()
         db.execute(detach_sql)
     for db_filename in cli_configure.db[1:]:
         attach_sql = f"ATTACH DATABASE '{db_filename}' AS src_db"
-        insert_sql = "INSERT INTO m2 SELECT * FROM src_db.m2"
+        insert_sql0 = "INSERT INTO m2 SELECT * FROM src_db.m2"
+        insert_sql1 = "INSERT INTO profile SELECT * FROM src_db.profile"
         db.execute(attach_sql)
-        db.execute(insert_sql)
+        db.execute(insert_sql0)
+        db.execute(insert_sql1)
         db.commit()
         db.execute(detach_sql)
     db.execute("CREATE INDEX m2_query_id ON m2(query_id)")
@@ -40,6 +44,9 @@ def main():
     db.execute("""
 CREATE INDEX m2_query_id_is_slow_start_time
 ON m2(query_id, is_slow, start_time)""")
+    db.execute("""
+CREATE INDEX profile_query_id
+ON profile(query_id)""")
     db.execute('''CREATE VIEW mview AS
 SELECT query_id
 ,query_type
