@@ -331,56 +331,7 @@ uint32_t TDebugProtocol::writeDouble(const double dub) {
 }
 
 uint32_t TDebugProtocol::writeString(const string& str) {
-  // XXX Raw/UTF-8?
-
-  string to_show = str;
-  if (to_show.length() > (string::size_type)string_limit_) {
-    to_show = str.substr(0, string_prefix_size_);
-    to_show += "[...](" + to_string(str.length()) + ")";
-  }
-
-  string output = "\"";
-
-  for (string::const_iterator it = to_show.begin(); it != to_show.end(); ++it) {
-    if (*it == '\\') {
-      output += "\\\\";
-    } else if (*it == '"') {
-      output += "\\\"";
-      // passing characters <0 to std::isprint causes asserts. isprint takes an
-      // int, so we need to be careful of sign extension
-    } else if (std::isprint((unsigned char)*it)) {
-      output += *it;
-    } else {
-      switch (*it) {
-      case '\a':
-        output += "\\a";
-        break;
-      case '\b':
-        output += "\\b";
-        break;
-      case '\f':
-        output += "\\f";
-        break;
-      case '\n':
-        output += "\\n";
-        break;
-      case '\r':
-        output += "\\r";
-        break;
-      case '\t':
-        output += "\\t";
-        break;
-      case '\v':
-        output += "\\v";
-        break;
-      default:
-        output += *it;
-      }
-    }
-  }
-
-  output += '\"';
-  return writeItem(output);
+  return writeItem(str);
 }
 
 uint32_t TDebugProtocol::writeBinary(const string& str) {
