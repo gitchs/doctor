@@ -26,12 +26,6 @@ function libs.insert_row(conn, tname, row)
         table.concat(p1, ',')
     )
     local cursor, err = conn:execute(sql)
-    if cursor == nil then
-        print(err, sql)
-        goto skip_commit
-    end
-    conn:commit()
-    ::skip_commit::
     return cursor, err
 end
 

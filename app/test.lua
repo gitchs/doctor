@@ -63,6 +63,7 @@ local function init_db(database)
     end
     local env = require'luasql.sqlite3'.sqlite3()
     local conn = env:connect(database)
+    conn:setautocommit(0)
 
     for _, init_statement in ipairs(init_statements) do
         local ok, err = conn:execute(init_statement)
@@ -110,6 +111,7 @@ local function main()
         os.exit(1)
     end
     local conn = init_db(cli_configure.database_file)
+    local sql_counter = 0
     for row in iterators.avro(cli_configure.avro_file) do
         local ok, err, tree = impala.parse_profile(row.profile)
         assert(ok and err == nil)
@@ -126,6 +128,7 @@ local function main()
         end
         if cli_configure.save_profile then
             dbutils.insert_row(conn, 'profile', row)
+            sql_counter = sql_counter + 1
         end
         local db_row = {
             query_id = tree:query_id(),
@@ -155,8 +158,14 @@ local function main()
             db_row.result = table.concat(result.skew_ops, '\n')
         end
         dbutils.insert_row(conn, 'm2', db_row)
+        sql_counter = sql_counter + 1
+        if sql_counter % 500 == 0 then
+            conn:commit()
+            sql_counter = 0
+        end
         ::next_row::
     end
+    conn:commit()
 end
 
 if not pcall(debug.getlocal, 4, 1) then
