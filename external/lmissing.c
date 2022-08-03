@@ -24,10 +24,8 @@
 
 #define __USE_XOPEN
 #define _GNU_SOURCE
-extern int optreset;
 
 static int lmissing_optreset(lua_State* L) {
-  optreset = 1;
   optind = 0;
   lua_pushboolean(L, 1);
   return 1;
