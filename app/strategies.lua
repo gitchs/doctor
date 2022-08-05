@@ -2,6 +2,7 @@
 local strutils = require'strutils'
 local limits = require'limits'
 local profileutils = require'profileutils'
+local logging = require'logging'
 local gsl = require'gsl'
 
 
@@ -191,6 +192,45 @@ function libs.operator_skew_detection(tree2, ctx)
     end
     return retval
 end
+
+
+-- cfwt
+
+function libs.cfwt_statics(tree2, ctx)
+    local IS = tree2.children[2]
+    assert(IS.name == 'ImpalaServer')
+    local cfwt = math.floor(IS.counters['ClientFetchWaitTimer']/1e6) -- convert to ms
+    local summary = getmetatable(tree2.children[1]).raw
+    local duration = tonumber(summary:info_strings('Duration(ms)') or '-1') -- unit is ms
+    logging.info([[cfwt %d, duration %d, percent %.2f%%]], cfwt, duration, cfwt * 100.0 /duration)
+    local has_timeline = false
+    local has_last_row_fetch = false
+    local sequences = summary:event_sequences()
+    for _, s in ipairs(sequences) do
+        if s.name == 'Query Timeline' then
+            has_timeline = true
+            for _, event in ipairs(s.events) do
+                if event[1] == 'Last row fetched' then
+                    has_last_row_fetch = true
+                    break
+                end
+            end
+            break
+        end
+    end
+
+    local retval = {
+        cfwt = cfwt,
+        duration = duration,
+        has_timeline = has_timeline,
+        has_last_row_fetch = has_last_row_fetch,
+        wait_percent = cfwt * 100.0 / duration,
+    }
+    return retval
+end
+
+
+-- cfwt end
 
 function libs.test_profile(tree2, ctx)
     local retval = {}
