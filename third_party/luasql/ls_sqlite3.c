@@ -449,6 +449,33 @@ static int conn_commit(lua_State *L)
 }
 
 
+static int conn_backup(lua_State *L) {
+  conn_data *conn = getconnection(L);
+  size_t flen = 0;
+  const char* const out_filename = lua_tolstring(L, 2, &flen);
+  if (flen == 0 || out_filename == NULL) {
+    lua_pushboolean(L, 0);
+    return 1;
+  }
+  sqlite3* out = NULL;
+  int res = sqlite3_open(out_filename, &out);
+  if (res != SQLITE_OK) {
+    luaL_error(L, "failed to open backup database \"%s\"", out_filename);
+    lua_pushboolean(L, 0);
+    return 1;
+  }
+  sqlite3_backup* backup = sqlite3_backup_init(out, "main", conn->sql_conn, "main");
+  if (backup) {
+    do {
+      res = sqlite3_backup_step(backup, 15);
+    } while (res == SQLITE_OK || res == SQLITE_BUSY || res == SQLITE_LOCKED);
+    sqlite3_backup_finish(backup);
+  }
+  sqlite3_close(out);
+  lua_pushboolean(L, 1);
+  return 1;
+}
+
 /*
 ** Rollback the current transaction.
 */
@@ -652,6 +679,7 @@ static void create_metatables (lua_State *L)
     {"escape", conn_escape},
     {"execute", conn_execute},
     {"commit", conn_commit},
+    {"backup", conn_backup},
     {"rollback", conn_rollback},
     {"setautocommit", conn_setautocommit},
     {"getlastautoid", conn_getlastautoid},
