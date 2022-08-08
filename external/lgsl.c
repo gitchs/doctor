@@ -66,8 +66,8 @@ static int lgsl_status(lua_State* L) {
   double std = gsl_stats_sd_m(v, 1, size, mean);
   double skew = gsl_stats_skew_m_sd(v, 1, size, mean, std);
   double kurt = gsl_stats_kurtosis_m_sd(v, 1, size, mean, std);
-  lua_pushnumber(L, v[0]); // min, max
-  lua_pushnumber(L, v[size-1]);
+  lua_pushnumber(L, v[0]);  // min, max
+  lua_pushnumber(L, v[size - 1]);
   lua_pushnumber(L, mean);
   lua_pushnumber(L, std);
   lua_pushnumber(L, skew);

@@ -70,10 +70,10 @@ static int lavro_next(lua_State* L) {
   try {
     has_more = reader->delegation->read(*reader->datum);
   } catch (const avro::Exception& e) {
-      lua_pushboolean(L, 0);
-      lua_pushstring(L, e.what());
-      lua_pushnil(L);
-      return 3;
+    lua_pushboolean(L, 0);
+    lua_pushstring(L, e.what());
+    lua_pushnil(L);
+    return 3;
   }
   avro::GenericRecord record = reader->datum->value<avro::GenericRecord>();
 
