@@ -12,8 +12,6 @@ set(SNAPPY_INSTALL OFF)
 find_package(Boost 1.38 REQUIRED
     COMPONENTS filesystem iostreams program_options regex system)
 
-set(OPENSSL_USE_STATIC_LIBS ON)
-find_package(OpenSSL REQUIRED)
 find_package(GSL REQUIRED)
 
 
@@ -31,7 +29,6 @@ include_directories(
     third_party/re2-2022-06-01/
     third_party/linenoise/
     third_party/sqlite-amalgamation-3390000/
-    ${OPENSSL_INCLUDE_DIR}
     ${Boost_INCLUDE_DIRS}
     ${GSL_INCLUDE_DIRS}
 )
@@ -124,7 +121,6 @@ set(DOCTOR_LINK_LIBS
     thriftz
     avrocpp_s
     snappy
-    ${OPENSSL_LIBRARIES}
     ${GSL_LIBRARIES}
     lua_external
 )
@@ -141,7 +137,6 @@ target_link_libraries(doctor
     re2
     ${DOCTOR_LINK_LIBS}
     ${Boost_LIBRARIES}
-    ${OPENSSL_LIBRARIES}
     pthread
 )
 

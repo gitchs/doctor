@@ -9,7 +9,19 @@
 #include "thrift/transport/TBufferTransports.h"
 #include "thrift/transport/TZlibTransport.h"
 
-#include "openssl/evp.h"  // for base64
+
+#include <ostream>
+#include "boost/archive/iterators/transform_width.hpp"
+#include "boost/archive/iterators/binary_from_base64.hpp"
+
+static std::string Base64Decode(const char* const message, const size_t mlen) {
+  std::stringstream ss;
+  typedef boost::archive::iterators::transform_width<boost::archive::iterators::binary_from_base64<const char*>, 8, 6> Base64Decoder;
+  std::copy(Base64Decoder(message), Base64Decoder(message + mlen), std::ostream_iterator<char>(ss));
+  return ss.str();
+}
+
+
 
 extern "C" {
 #include "lauxlib.h"
@@ -285,22 +297,13 @@ static int limpala_parse_profile(lua_State* L) {
   }
 
   size_t plen = b64_plen * 3 / 4;
-  std::unique_ptr<uint8_t[]> profile(new uint8_t[plen]);
-  size_t ol =
-      EVP_DecodeBlock(profile.get(), (unsigned char*)b64_profile, b64_plen);
-
-  if (ol != plen) {
-    lua_pushboolean(L, 0);
-    lua_pushstring(L, "b64decode failed");
-    lua_pushnil(L);
-    return 3;
-  }
+  std::string raw_profile = Base64Decode(b64_profile, b64_plen);
 
   lua_pushboolean(L, 1);
   lua_pushnil(L);
   std::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer =
       std::make_shared<apache::thrift::transport::TMemoryBuffer>(plen);
-  buffer->write(profile.get(), plen);
+  buffer->write((unsigned char*)raw_profile.c_str(), raw_profile.size());
   apache::thrift::protocol::TCompactProtocol protocol(
       apache::thrift::transport::TZlibTransportFactory().getTransport(buffer));
   LRuntimeProfileTree* tree =

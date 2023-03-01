@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <openssl/evp.h>
 #include <string.h>
 #include "gsl/gsl_sort_double.h"
 #include "lauxlib.h"
