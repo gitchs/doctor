@@ -6,6 +6,7 @@ local missing = require'missing'
 local logging = require'logging'
 local iterators = require'iterators'
 local strategies = require'strategies'
+local strutils = require'strutils'
 local profileutils = require'profileutils'
 local dbutils = require'dbutils'
 local sqlutils = require'sqlutils'
@@ -23,6 +24,8 @@ CREATE TABLE IF NOT EXISTS m2(
     query_status TEXT NOT NULL,
     coordinator VARCHAR(64) NOT NULL,
     rows_produced INT NOT NULL,
+    est_per_host_mem INT DEFAULT -1,
+    peak_memory_usage INT DEFAULT -1,
     cluster_memory_admitted VARCHAR(255) NOT NULL,
     hdfs_statics TEXT NOT NULL,
     hash_join_statics TEXT NOT NULL,
@@ -132,7 +135,14 @@ local function main()
             dbutils.insert_row(conn, 'profile', row)
             sql_counter = sql_counter + 1
         end
-        
+
+        local eprofile_node = tree2.children[#tree2.children]
+        local peak_memory_usage = -1
+        if eprofile_node ~= nil and strutils.startswith(eprofile_node.name, 'Execution Profile') then
+            local raw_eprofile = getmetatable(eprofile_node).raw
+            peak_memory_usage = tonumber(raw_eprofile:info_strings('Peak Memory Usage') or '-1')
+        end
+
         local db_row = {
             query_id = tree:query_id(),
             query_type = query_type,
@@ -145,6 +155,8 @@ local function main()
             duration = tonumber(summary:info_strings('Duration(ms)') or '-1'),
             admission_wait = tonumber(summary:info_strings('Admission Wait') or '-1'),
             cluster_memory_admitted = summary:info_strings('Cluster Memory Admitted') or '',
+            est_per_host_mem = tonumber(summary:info_strings('Estimated Per-Host Mem') or '-1'),
+            peak_memory_usage = peak_memory_usage,
             hdfs_statics = cjson.encode(strategies.hdfs_statics(tree2)),
             hash_join_statics = cjson.encode(strategies.hash_join_statics(tree2)),
             is_slow = result.is_slow,
