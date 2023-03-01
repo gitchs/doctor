@@ -27,8 +27,6 @@ include_directories(
     third_party/luasql/
     build/third_party/thrift-0.16.0/
     build/third_party/snappy-1.1.9/
-    third_party/mariadb-connector-c-3.3.1-src/include
-    third_party/mariadb-connector-c-3.3.1-src/copygen
     third_party/xxHash-0.8.1
     third_party/re2-2022-06-01/
     third_party/linenoise/
@@ -44,7 +42,6 @@ add_subdirectory(third_party/avro-cpp-1.11.0)
 add_subdirectory(third_party/thrift-0.16.0)
 add_subdirectory(third_party/impala-codegen)
 add_subdirectory(third_party/cjson)
-add_subdirectory(third_party/mariadb-connector-c-3.3.1-src)
 add_subdirectory(third_party/luasql)
 
 
@@ -139,7 +136,6 @@ target_link_libraries(doctor
     lua_s
     lua_external
     LUASQL
-    libmariadb_s
     sqlite3_a
     xxhash
     re2
