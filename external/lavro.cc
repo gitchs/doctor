@@ -106,7 +106,10 @@ static int lavro_next(lua_State* L) {
         lua_pushinteger(L, field.value<int>());
         break;
       case avro::AVRO_LONG:
-        lua_pushinteger(L, field.value<long>());
+        {
+          long v = field.value<long>();
+          lua_pushinteger(L, v);
+        }
         break;
       case avro::AVRO_FLOAT:
         lua_pushnumber(L, field.value<float>());

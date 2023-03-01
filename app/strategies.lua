@@ -1,4 +1,5 @@
 #!/usr/bin/env doctor
+local math = require'math'
 local strutils = require'strutils'
 local limits = require'limits'
 local profileutils = require'profileutils'
@@ -27,6 +28,83 @@ end
 
 local default_profile_context = libs.ProfileContext.new()
 
+
+function libs.hash_join_statics(tree2)
+  local retval = {}
+
+  local summary = tree2.children[1]
+  assert(summary.name == 'Summary', 'first children should be [SUMMARY]')
+  local raw_summary = getmetatable(summary).raw
+  assert(raw_summary ~= nil, 'getmetatable(summary).raw should not be nil')
+  if raw_summary:info_strings('Query State') ~= 'FINISHED' then
+    return retval
+  end
+
+  local plan = raw_summary:info_strings('Plan')
+  local js = re2.match(plan, [[(\d+:HASH JOIN .*)]])
+  if #js == 0 then
+    return retval
+  end
+  for _, j in ipairs(js) do
+    local oid = tostring(math.floor(tonumber(string.gmatch(j, '([0-9]+):')())))
+    retval[oid] = {}
+    if string.find(j, 'PARTITIONED') then
+      retval[oid].mode = 'PARTITIONED'
+    elseif string.find(j, 'BROADCAST') then
+      retval[oid].mode = 'BROADCAST'
+    else
+      assert(false, 'UNKNOWN JOIN MODE')
+    end
+  end
+
+
+  local gops = profileutils.group_operators(tree2)
+  for oid, ops in pairs(gops) do
+    if #ops == 0 then 
+      goto NEXT_OP_GROUP
+    end
+    if strutils.startswith(ops[1].name, 'Hash Join Builder') then
+      local oid2 = string.gmatch(ops[1].name, '=([0-9]+)')()
+      assert(retval[oid2] ~= nil, 'SOMETHING WENT WRONG')
+      if retval[oid2].mode == 'PARTITIONED' then
+        for _, op in ipairs(ops) do
+          retval[oid2].BuildRows = (retval[oid2].BuildRows or 0) + (op.counters['BuildRows'] or 0)
+        end
+      elseif retval[oid2].mode == 'BROADCAST' then
+        retval[oid2].BuildRows = ops[1].counters['BuildRows']
+      else
+        assert(false, 'CURRENT ONLY SUPPORT MODE "BROADCAST/PARTITIONED"')
+      end
+
+    elseif strutils.startswith(ops[1].name, 'HASH_JOIN_NODE') then
+      for _, op in ipairs(ops) do
+        retval[oid].ProbeRows = (retval[oid].ProbeRows or 0) + (op.counters['ProbeRows'] or 0)
+      end
+    else
+      goto NEXT_OP_GROUP
+    end
+
+    ::NEXT_OP_GROUP::
+  end
+
+
+  for oid, k in pairs(retval) do
+    local row_base_memory = 60 -- 一条数据，分配60byte，经验值
+    retval[oid].cost_broadcast_right_memory = k.BuildRows * row_base_memory
+    retval[oid].cost_broadcast_network = k.BuildRows * 3
+    retval[oid].cost_partitioned_right_memory = k.BuildRows / 3 * row_base_memory
+    retval[oid].cost_partitioned_network =  k.BuildRows + k.ProbeRows
+
+    if retval[oid].cost_partitioned_network / retval[oid].cost_broadcast_network > 3 then
+        retval[oid].preferer_mode = 'BROADCAST'
+    else
+        retval[oid].preferer_mode = 'PARTITIONED'
+    end
+
+  end
+  return retval
+end
+
 function libs.hdfs_statics(tree2)
     local gops = profileutils.group_operators(tree2)
     if gops == nil then
@@ -34,7 +112,7 @@ function libs.hdfs_statics(tree2)
     end
     local retval = {}
     for oid, ops in pairs(gops) do
-        if #ops == 0 then 
+        if #ops == 0 then
             goto NEXT_OP_GROUP
         end
         if not strutils.startswith(ops[1].name, 'HDFS_SCAN_NODE') then

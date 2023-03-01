@@ -1,4 +1,4 @@
-#!/usr/bin/env doctor
+#!./doctor
 local os = require'os'
 local cjson = require'cjson'
 local impala = require'impala'
@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS m2(
     rows_produced INT NOT NULL,
     cluster_memory_admitted VARCHAR(255) NOT NULL,
     hdfs_statics TEXT NOT NULL,
+    hash_join_statics TEXT NOT NULL,
     is_slow TINYINT NOT NULL,
     has_skew_ops TINYINT NOT NULL,
     start_time datetime NOT NULL,
@@ -126,10 +127,12 @@ local function main()
         if sqlutils.in_blacklist(sql) then
             goto next_row
         end
+        -- logging.info('working on query %s', tree:query_id())
         if cli_configure.save_profile then
             dbutils.insert_row(conn, 'profile', row)
             sql_counter = sql_counter + 1
         end
+        
         local db_row = {
             query_id = tree:query_id(),
             query_type = query_type,
@@ -143,6 +146,7 @@ local function main()
             admission_wait = tonumber(summary:info_strings('Admission Wait') or '-1'),
             cluster_memory_admitted = summary:info_strings('Cluster Memory Admitted') or '',
             hdfs_statics = cjson.encode(strategies.hdfs_statics(tree2)),
+            hash_join_statics = cjson.encode(strategies.hash_join_statics(tree2)),
             is_slow = result.is_slow,
             has_skew_ops = false,
             coordinator = summary:info_strings('Coordinator'),

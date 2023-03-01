@@ -7,18 +7,21 @@ import logging
 from pathlib import Path
 from multiprocessing.pool import ThreadPool
 from subprocess import Popen
+from uuid import uuid4
 
 
-def task(f: Path) -> int:
+def task(task_configure) -> int:
     "开子进程，处理任务"
+    batch_id, f = task_configure
     f = f.absolute()
-    logging.info('handle file "%s"', f)
+    database_filename = f'sqlite-{batch_id}-{uuid4().bytes.hex()}.db'
+    logging.info('handle file "%s", output %s', f, database_filename)
     child_args = [
         str(Path(__file__).parent.joinpath('doctor').absolute()),
         str(Path(__file__).parent.joinpath('test.lua').absolute()),
         '-p',
-        '-f',
-        str(f),
+        '-f', str(f),
+        '-d', database_filename,
     ]
     with Popen(child_args, cwd=str(Path(__file__).parent.absolute())) as child:
         return child.wait()
@@ -26,9 +29,10 @@ def task(f: Path) -> int:
 
 def fit(dirs):
     "文件任务队列iterator"
+    batch_id = uuid4().bytes.hex()
     for d in dirs:
         for f in Path(d).glob('*.avro'):
-            yield f
+            yield (batch_id, f)
 
 def main():
     "main entry"

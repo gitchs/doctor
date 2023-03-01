@@ -3,6 +3,7 @@
 parallel.py会生成很多sqlite-$PID.db数据库，
 为了方便分析,需要将他们合并
 """
+import time
 import logging
 from argparse import ArgumentParser
 import sqlite3
@@ -16,7 +17,7 @@ def main():
     )
     cli_parser = ArgumentParser()
     cli_parser.add_argument('--db', nargs='+', required=True)
-    cli_parser.add_argument('--output', '-o', default='profile-merged.db')
+    cli_parser.add_argument('--output', '-o', default=f'profile-merged-{int(time.time())}.db')
     cli_configure = cli_parser.parse_args()
     db = sqlite3.connect(cli_configure.output)
     detach_sql = "DETACH DATABASE src_db"

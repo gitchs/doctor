@@ -54,6 +54,10 @@ local node2methods = {
         if #m > 0 then
             return m[#m]
         end
+        m = re2.match(self.name, [[(join_node_id=\d+)]])
+        if #m > 0 then
+            return m[#m]
+        end
         return nil
     end,
     normalize = function (self)
@@ -128,6 +132,11 @@ function libs.instance_operators(instance)
         while index <= instance.num_children do
             local child = instance.children[index]
             index = index + 1
+
+            if strutils.startswith(child.name, 'Hash Join Builder') then
+                return child:normalize()
+            end
+
             local m = re2.match(child.name, [[(\(id=\d+\)$)]])
             if #m > 0 then
                 if child.num_children > 0 then
@@ -143,7 +152,7 @@ end
 function libs.group_operators(tree2)
     local execution_profile = tree2.children[tree2.num_children]
     if not strutils.startswith(execution_profile.name, 'Execution Profile') then
-        return nil
+        return {}
     end
     local gops = {}
     for _, fragment in ipairs(execution_profile.children) do
