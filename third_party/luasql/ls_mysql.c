@@ -4,6 +4,8 @@
 ** See Copyright Notice in license.html
 */
 
+#ifdef ENABLE_LUASQL_MYSQL
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,28 +30,28 @@
 #define LUASQL_CURSOR_MYSQL "MySQL cursor"
 
 /* For compat with old version 4.0 */
-#if (MYSQL_VERSION_ID < 40100) 
-#define MYSQL_TYPE_VAR_STRING   FIELD_TYPE_VAR_STRING 
-#define MYSQL_TYPE_STRING       FIELD_TYPE_STRING 
-#define MYSQL_TYPE_DECIMAL      FIELD_TYPE_DECIMAL 
-#define MYSQL_TYPE_SHORT        FIELD_TYPE_SHORT 
-#define MYSQL_TYPE_LONG         FIELD_TYPE_LONG 
-#define MYSQL_TYPE_FLOAT        FIELD_TYPE_FLOAT 
-#define MYSQL_TYPE_DOUBLE       FIELD_TYPE_DOUBLE 
-#define MYSQL_TYPE_LONGLONG     FIELD_TYPE_LONGLONG 
-#define MYSQL_TYPE_INT24        FIELD_TYPE_INT24 
-#define MYSQL_TYPE_YEAR         FIELD_TYPE_YEAR 
-#define MYSQL_TYPE_TINY         FIELD_TYPE_TINY 
-#define MYSQL_TYPE_TINY_BLOB    FIELD_TYPE_TINY_BLOB 
-#define MYSQL_TYPE_MEDIUM_BLOB  FIELD_TYPE_MEDIUM_BLOB 
-#define MYSQL_TYPE_LONG_BLOB    FIELD_TYPE_LONG_BLOB 
-#define MYSQL_TYPE_BLOB         FIELD_TYPE_BLOB 
-#define MYSQL_TYPE_DATE         FIELD_TYPE_DATE 
-#define MYSQL_TYPE_NEWDATE      FIELD_TYPE_NEWDATE 
-#define MYSQL_TYPE_DATETIME     FIELD_TYPE_DATETIME 
-#define MYSQL_TYPE_TIME         FIELD_TYPE_TIME 
-#define MYSQL_TYPE_TIMESTAMP    FIELD_TYPE_TIMESTAMP 
-#define MYSQL_TYPE_ENUM         FIELD_TYPE_ENUM 
+#if (MYSQL_VERSION_ID < 40100)
+#define MYSQL_TYPE_VAR_STRING   FIELD_TYPE_VAR_STRING
+#define MYSQL_TYPE_STRING       FIELD_TYPE_STRING
+#define MYSQL_TYPE_DECIMAL      FIELD_TYPE_DECIMAL
+#define MYSQL_TYPE_SHORT        FIELD_TYPE_SHORT
+#define MYSQL_TYPE_LONG         FIELD_TYPE_LONG
+#define MYSQL_TYPE_FLOAT        FIELD_TYPE_FLOAT
+#define MYSQL_TYPE_DOUBLE       FIELD_TYPE_DOUBLE
+#define MYSQL_TYPE_LONGLONG     FIELD_TYPE_LONGLONG
+#define MYSQL_TYPE_INT24        FIELD_TYPE_INT24
+#define MYSQL_TYPE_YEAR         FIELD_TYPE_YEAR
+#define MYSQL_TYPE_TINY         FIELD_TYPE_TINY
+#define MYSQL_TYPE_TINY_BLOB    FIELD_TYPE_TINY_BLOB
+#define MYSQL_TYPE_MEDIUM_BLOB  FIELD_TYPE_MEDIUM_BLOB
+#define MYSQL_TYPE_LONG_BLOB    FIELD_TYPE_LONG_BLOB
+#define MYSQL_TYPE_BLOB         FIELD_TYPE_BLOB
+#define MYSQL_TYPE_DATE         FIELD_TYPE_DATE
+#define MYSQL_TYPE_NEWDATE      FIELD_TYPE_NEWDATE
+#define MYSQL_TYPE_DATETIME     FIELD_TYPE_DATETIME
+#define MYSQL_TYPE_TIME         FIELD_TYPE_TIME
+#define MYSQL_TYPE_TIMESTAMP    FIELD_TYPE_TIMESTAMP
+#define MYSQL_TYPE_ENUM         FIELD_TYPE_ENUM
 #define MYSQL_TYPE_SET          FIELD_TYPE_SET
 #define MYSQL_TYPE_NULL         FIELD_TYPE_NULL
 
@@ -133,7 +135,7 @@ static char *getcolumntype (enum enum_field_types type) {
 			return "string";
 		case MYSQL_TYPE_DECIMAL: case MYSQL_TYPE_SHORT: case MYSQL_TYPE_LONG:
 		case MYSQL_TYPE_FLOAT: case MYSQL_TYPE_DOUBLE: case MYSQL_TYPE_LONGLONG:
-		case MYSQL_TYPE_INT24: case MYSQL_TYPE_YEAR: case MYSQL_TYPE_TINY: 
+		case MYSQL_TYPE_INT24: case MYSQL_TYPE_YEAR: case MYSQL_TYPE_TINY:
 			return "number";
 		case MYSQL_TYPE_TINY_BLOB: case MYSQL_TYPE_MEDIUM_BLOB:
 		case MYSQL_TYPE_LONG_BLOB: case MYSQL_TYPE_BLOB:
@@ -191,7 +193,7 @@ static void cur_nullify (lua_State *L, cur_data *cur) {
 	luaL_unref (L, LUA_REGISTRYINDEX, cur->coltypes);
 }
 
-	
+
 /*
 ** Get another row of the given cursor.
 */
@@ -223,7 +225,7 @@ static int cur_fetch (lua_State *L) {
 			if (cur->colnames == LUA_NOREF)
 		        create_colinfo(L, cur);
 			lua_rawgeti (L, LUA_REGISTRYINDEX, cur->colnames);/* Push colnames*/
-	
+
 			/* Copy values to alphanumerical indices */
 			for (i = 0; i < cur->numcols; i++) {
 				lua_rawgeti(L, -1, i+1); /* push the field name */
@@ -344,7 +346,7 @@ static void _pushtable (lua_State *L, cur_data *cur, size_t off) {
 	/* If colnames or coltypes do not exist, create both. */
 	if (*ref == LUA_NOREF)
 		create_colinfo(L, cur);
-	
+
 	/* Pushes the right table (colnames or coltypes) */
 	lua_rawgeti (L, LUA_REGISTRYINDEX, *ref);
 }
@@ -485,7 +487,7 @@ static int conn_execute (lua_State *L) {
 	conn_data *conn = getconnection (L);
 	size_t st_len;
 	const char *statement = luaL_checklstring (L, 2, &st_len);
-	if (mysql_real_query(conn->my_conn, statement, st_len)) 
+	if (mysql_real_query(conn->my_conn, statement, st_len))
 		/* error executing query */
 		return luasql_failmsg(L, "error executing query. MySQL: ", mysql_error(conn->my_conn));
 	else
@@ -593,7 +595,7 @@ static int env_connect (lua_State *L) {
 	if (conn == NULL)
 		return luasql_faildirect(L, "error connecting: Out of memory.");
 
-	if (!mysql_real_connect(conn, host, username, password, 
+	if (!mysql_real_connect(conn, host, username, password,
 		sourcename, port, unix_socket, client_flag))
 	{
 		char error_msg[100];
@@ -690,7 +692,7 @@ static int create_environment (lua_State *L) {
 ** Creates the metatables for the objects and registers the
 ** driver open method.
 */
-LUASQL_API int luaopen_luasql_mysql (lua_State *L) { 
+LUASQL_API int luaopen_luasql_mysql (lua_State *L) {
 	struct luaL_Reg driver[] = {
 		{"mysql", create_environment},
 		{NULL, NULL},
@@ -708,3 +710,6 @@ lua_pushliteral (L, MYSQL_SERVER_VERSION);
     lua_settable (L, -3);
 	return 1;
 }
+
+#endif // ENABLE_LUASQL_MYSQL
+

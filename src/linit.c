@@ -70,7 +70,9 @@ static const luaL_Reg loadedlibs[] = {
   {"hashlib", luaopen_hashlib},
   {"errors", luaopen_errors},
   {"luasql.sqlite3", luaopen_luasql_sqlite3},
+#ifdef ENABLE_LUASQL_MYSQL
   {"luasql.mysql", luaopen_luasql_mysql},
+#endif
   {"gsl", luaopen_gsl},
   {"carray", luaopen_carray},
   {NULL, NULL}
