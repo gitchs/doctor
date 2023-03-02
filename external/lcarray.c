@@ -52,6 +52,7 @@ static int lcarray_string_array_set(lua_State* L) {
   index--;
   const char* value = lua_tolstring(L, 3, array->item_sizes + index);
   array->data[index] = malloc(sizeof(char) * (array->item_sizes[index] + 1));
+  memset(array->data[index], 0, array->item_sizes[index] + 1);
   strncpy(array->data[index], value, array->item_sizes[index]);
   lua_pushboolean(L, 1);
   return 1;
