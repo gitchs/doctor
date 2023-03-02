@@ -1,27 +1,19 @@
 #!./doctor
 local optlib = require'optlib'
+local define = optlib.define
 
 
-local parser = optlib.Parser.new()
-local FLAGS_FILENAME = 'INPUT_FILENAME'
-local FLAGS_VERBOSE_COUNTERS = 0
-local args = {'-f', FLAGS_FILENAME, '-v'}
+define('--port', '-p', {default='10086', type=optlib.tointeger})
+define('--address', {default='localhost'})
+define('--verbose', '-v', {nargs=0})
 
-for is_option, option, value in parser:feed(args, "f:v") do
-  assert(is_option, 'get unknown option')
-  if option == 'f' then
-    assert(value == FLAGS_FILENAME, '-f value does not match')
-    goto NEXT
-  end
+local args = {
+  '-p', '12345',
+  '--address', '0.0.0.0',
+  '--verbose=true',
+}
+optlib.parse(args)
 
-  if option == 'v' then
-    assert(FLAGS_VERBOSE_COUNTERS == 0, 'FLAGS_VERBOSE_COUNTERS should be 0 now')
-    FLAGS_VERBOSE_COUNTERS = FLAGS_VERBOSE_COUNTERS + 1
-    goto NEXT
-  end
-
-  ::NEXT::
-end
-
-assert(FLAGS_VERBOSE_COUNTERS == 1, 'FLAGS_VERBOSE_COUNTERS should be 1 now')
-
+print(optlib.get('address'))
+local port = optlib.get('port')
+print(port, type(port))
