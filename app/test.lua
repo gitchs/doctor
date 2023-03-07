@@ -81,32 +81,30 @@ local function init_db(database)
 end
 
 local function cli_init()
-    local retval = {
-        avro_file = nil,
-        database_file = nil,
-        save_profile = false,
-    }
-    local parser = optlib.Parser.new()
-    local it = parser:feed(arg, "f:p?d:h?")
-    for is_option, option, value in it do
-        assert(is_option, string.format('invalid option "%s"', value))
-        if option == 'p' then
-            retval.save_profile = true
-        elseif option == 'd' then
-            retval.database_file = value
-        elseif option == 'f' then
-            retval.avro_file = value
-        elseif option == 'h' then
-            print[[./test.lua [-p] -f AVRO_FILE [-d DATABASE_FILE]
+    optlib.define('--help', '-h', {nargs=0})
+    optlib.define('--save_profile', '-p', {nargs=0})
+    optlib.define('--avro_file', '-f')
+    optlib.define('--database_file', '-d')
+    optlib.parse(arg)
+
+    if optlib.get('help') then
+      print[[./test.lua [-p] -f AVRO_FILE [-d DATABASE_FILE]
     -p                  Save raw profile from avro to sqlite profle table.
     -f AVRO_FILE        Input avro file, only process one value.
     -d DATABASE_FILE    Database file, if missing will generate one automatically.
 ]]
-            os.exit(0)
-        end
+      os.exit(0)
     end
+
+    local retval = {}
+    setmetatable(retval, {
+      __index = function(self, key)
+        return optlib.get(key)
+      end
+    })
     return retval
 end
+
 
 local function main()
     local cli_configure = cli_init()

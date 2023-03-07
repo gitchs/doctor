@@ -69,9 +69,11 @@ function libs.parse(args)
   local idx = 1
   while idx <= #args do
     local arg = args[idx]
+    local match = false
     for _, option in ipairs(options) do
       local nargs = option.nargs
       if arg == option.short_name then
+        match = true
         if nargs == 0 then
           option.value = true
         else
@@ -80,6 +82,7 @@ function libs.parse(args)
         idx = idx + nargs + 1
         break
       elseif arg == option.long_name then
+        match = true
         if nargs == 0 then
           option.value = true
         else
@@ -88,6 +91,7 @@ function libs.parse(args)
         idx = idx + nargs + 1
         break
       elseif strutils.startswith(arg, option.long_name .. '=') then
+        match = true
         local i = arg:find('=')
         local optarg = arg:sub(i+1, #arg)
         print('optarg: ', optarg)
@@ -106,6 +110,7 @@ function libs.parse(args)
         break
       end
     end
+    assert(match, 'invalid arg: ' .. arg)
   end
 end
 

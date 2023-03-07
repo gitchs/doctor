@@ -60,7 +60,7 @@ function libs.hash_join_statics(tree2)
 
   local gops = profileutils.group_operators(tree2)
   for oid, ops in pairs(gops) do
-    if #ops == 0 then 
+    if #ops == 0 then
       goto NEXT_OP_GROUP
     end
     if strutils.startswith(ops[1].name, 'Hash Join Builder') then
@@ -90,10 +90,10 @@ function libs.hash_join_statics(tree2)
 
   for oid, k in pairs(retval) do
     local row_base_memory = 60 -- 一条数据，分配60byte，经验值
-    retval[oid].cost_broadcast_right_memory = k.BuildRows * row_base_memory
-    retval[oid].cost_broadcast_network = k.BuildRows * 3
-    retval[oid].cost_partitioned_right_memory = k.BuildRows / 3 * row_base_memory
-    retval[oid].cost_partitioned_network =  k.BuildRows + k.ProbeRows
+    retval[oid].cost_broadcast_right_memory = (k.BuildRows or 0) * row_base_memory
+    retval[oid].cost_broadcast_network = (k.BuildRows or 0) * 3
+    retval[oid].cost_partitioned_right_memory = (k.BuildRows or 0) / 3 * row_base_memory
+    retval[oid].cost_partitioned_network =  (k.BuildRows or 0) + (k.ProbeRows or 0)
 
     if retval[oid].cost_partitioned_network / retval[oid].cost_broadcast_network > 3 then
         retval[oid].preferer_mode = 'BROADCAST'
