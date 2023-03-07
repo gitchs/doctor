@@ -1,0 +1,56 @@
+#!./doctor
+local io = require'io'
+local impala = require'impala'
+local iterators = require'iterators'
+local optlib = require'optlib'
+local define = optlib.define
+local options = optlib.options
+
+
+define('--help', '-h', {nargs=0})
+define('--avro_filename', '-f')
+define('--query_id', '-q')
+
+
+
+local libs = {}
+
+
+function libs.view_profile(avro_filename, query_id)
+  local output_filename = query_id:gsub(':', '') .. '.txt'
+  print(output_filename)
+  for row in iterators.avro(avro_filename) do
+    if row.query_id == query_id then
+      local ok, err, tree = impala.parse_profile(row.profile)
+      assert(ok and err == nil, 'failed to parse profile')
+      local raw = tree:debug()
+      local fd <close> = io.open(output_filename, 'w')
+      fd:write(raw)
+      return
+    end
+  end
+end
+
+
+local function valid_str(v)
+  if type(v) ~= 'string' then
+    return false
+  end
+  return v ~= ''
+end
+
+
+function main()
+  optlib.parse(arg)
+  local query_id = options['query_id']
+  local avro_filename = options['avro_filename']
+  if options['help'] or not valid_str(query_id) or not valid_str(avro_filename) then
+    print[[viewprofile -f AVRO_FILENAME -q QUERY_ID ]]
+    return
+  end
+  libs.view_profile(avro_filename, query_id)
+end
+
+
+main()
+
