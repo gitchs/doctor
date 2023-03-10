@@ -4,7 +4,6 @@ local impala = require'impala'
 local iterators = require'iterators'
 local optlib = require'optlib'
 local define = optlib.define
-local options = optlib.options
 
 
 define('--help', '-h', {nargs=0})
@@ -17,7 +16,7 @@ local libs = {}
 
 
 function libs.view_profile(avro_filename, query_id)
-  local output_filename = query_id:gsub(':', '') .. '.txt'
+  local output_filename = query_id:gsub(':', '') .. '-debug.txt'
   print(output_filename)
   for row in iterators.avro(avro_filename) do
     if row.query_id == query_id then
@@ -42,9 +41,9 @@ end
 
 function main()
   optlib.parse(arg)
-  local query_id = options['query_id']
-  local avro_filename = options['avro_filename']
-  if options['help'] or not valid_str(query_id) or not valid_str(avro_filename) then
+  local query_id = optlib.get'query_id'
+  local avro_filename = optlib.get'avro_filename'
+  if optlib.get('help') or not valid_str(query_id) or not valid_str(avro_filename) then
     print[[viewprofile -f AVRO_FILENAME -q QUERY_ID ]]
     return
   end

@@ -137,8 +137,6 @@ function libs.get(name)
   end
 end
 
-libs.options = options
-
 libs.tointeger = function(v)
   return math.floor(tonumber(v))
 end
