@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS m2(
     duration INTEGER NOT NULL,
     admission_wait LONG NOT NULL,
     result LONGTEXT NOT NULL,
+    execution_profile_counters LONGTEXT NOT NULL,
     `sql_sign` VARCHAR(32) NOT NULL,
     `sql` LONGTEXT NOT NULL
 )
@@ -135,10 +136,12 @@ local function main()
         end
 
         local eprofile_node = tree2.children[#tree2.children]
+        local execution_profile_counters = {}
         local peak_memory_usage = -1
         if eprofile_node ~= nil and strutils.startswith(eprofile_node.name, 'Execution Profile') then
             local raw_eprofile = getmetatable(eprofile_node).raw
             peak_memory_usage = tonumber(raw_eprofile:info_strings('Peak Memory Usage') or '-1')
+            execution_profile_counters = eprofile_node.counters
         end
 
         local db_row = {
@@ -155,6 +158,7 @@ local function main()
             cluster_memory_admitted = summary:info_strings('Cluster Memory Admitted') or '',
             est_per_host_mem = tonumber(summary:info_strings('Estimated Per-Host Mem') or '-1'),
             peak_memory_usage = peak_memory_usage,
+            execution_profile_counters = cjson.encode(execution_profile_counters),
             hdfs_statics = cjson.encode(strategies.hdfs_statics(tree2)),
             hash_join_statics = cjson.encode(strategies.hash_join_statics(tree2)),
             is_slow = result.is_slow,
