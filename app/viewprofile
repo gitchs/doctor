@@ -1,5 +1,6 @@
 #!./doctor
 local io = require'io'
+local missing = require'missing'
 local impala = require'impala'
 local iterators = require'iterators'
 local optlib = require'optlib'
@@ -15,19 +16,15 @@ define('--query_id', '-q')
 local libs = {}
 
 
-function libs.view_profile(avro_filename, query_id)
+function libs.view_profile(raw_profile)
+  local ok, err, tree = impala.parse_profile(raw_profile)
+  assert(ok and err == nil, 'failed to parse profile')
+  local query_id = tree:query_id()
   local output_filename = query_id:gsub(':', '') .. '-debug.txt'
   print(output_filename)
-  for row in iterators.avro(avro_filename) do
-    if row.query_id == query_id then
-      local ok, err, tree = impala.parse_profile(row.profile)
-      assert(ok and err == nil, 'failed to parse profile')
-      local raw = tree:debug()
-      local fd <close> = io.open(output_filename, 'w')
-      fd:write(raw)
-      return
-    end
-  end
+  local raw = tree:debug()
+  local fd <close> = io.open(output_filename, 'w')
+  fd:write(raw)
 end
 
 
@@ -40,6 +37,12 @@ end
 
 
 function main()
+  if not missing.isatty(0) then
+    libs.view_profile(io.stdin:read())
+    return
+  end
+
+
   optlib.parse(arg)
   local query_id = optlib.get'query_id'
   local avro_filename = optlib.get'avro_filename'
@@ -47,7 +50,12 @@ function main()
     print[[viewprofile -f AVRO_FILENAME -q QUERY_ID ]]
     return
   end
-  libs.view_profile(avro_filename, query_id)
+  for row in iterators.avro(avro_filename) do
+    if row.query_id == query_id then
+      libs.view_profile(row.profile)
+      return
+    end
+  end
 end
 
 
