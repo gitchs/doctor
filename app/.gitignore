@@ -1,5 +1,6 @@
 *.txt
 doctor
+*.xlsx
 *.json
 once.lua
 *.csv
