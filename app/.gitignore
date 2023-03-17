@@ -11,6 +11,7 @@ dump.sh
 log
 log.*
 plot
+dump
 t*.lua
 *.data
 *.svg

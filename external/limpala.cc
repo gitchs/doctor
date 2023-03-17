@@ -10,17 +10,7 @@
 #include "thrift/transport/TZlibTransport.h"
 
 
-#include <ostream>
-#include "boost/archive/iterators/transform_width.hpp"
-#include "boost/archive/iterators/binary_from_base64.hpp"
-
-static std::string Base64Decode(const char* const message, const size_t mlen) {
-  std::stringstream ss;
-  typedef boost::archive::iterators::transform_width<boost::archive::iterators::binary_from_base64<const char*>, 8, 6> Base64Decoder;
-  std::copy(Base64Decoder(message), Base64Decoder(message + mlen), std::ostream_iterator<char>(ss));
-  return ss.str();
-}
-
+#include "utils.h"
 
 
 extern "C" {

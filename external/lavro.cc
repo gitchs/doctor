@@ -7,7 +7,7 @@
 
 #include "lavro.h"
 #include <cstring>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 #include <iostream>
 
 #include "avro/DataFile.hh"
@@ -35,7 +35,7 @@ const static char* const LUA_AVROREADER_TYPE = "AvroDataFileReader*";
 static int lavro_open(lua_State* L) {
   const char* filename = lua_tostring(L, 1);
   assert(filename != NULL);
-  bool exists = std::filesystem::exists(filename);
+  bool exists = boost::filesystem::exists(filename);
   if (!exists) {
     lua_pushnil(L);
     return 1;

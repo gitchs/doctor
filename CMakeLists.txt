@@ -2,21 +2,24 @@ project(lua)
 cmake_minimum_required(VERSION 3.22)
 
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SNAPPY_INSTALL OFF)
 
+option(D2_ENABLE_THREAD_POOL "ENABLE MULTI THREAD IN d2" OFF)
+
 
 find_package(Boost 1.38 REQUIRED
-    COMPONENTS filesystem iostreams program_options regex system)
+    COMPONENTS filesystem iostreams program_options system thread chrono json)
 
 find_package(GSL REQUIRED)
 
 
 include_directories(
     src/
+    third_party/spdlog-1.11.0/include/
     third_party/snappy-1.1.9/
     third_party/avro-cpp-1.11.0/include/
     third_party/thrift-0.16.0/lib/cpp/src/
@@ -32,6 +35,7 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
     ${GSL_INCLUDE_DIRS}
 )
+add_subdirectory(third_party/spdlog-1.11.0)
 add_subdirectory(third_party/sqlite-amalgamation-3390000/)
 add_subdirectory(third_party/linenoise/)
 add_subdirectory(third_party/snappy-1.1.9)
@@ -61,6 +65,7 @@ set(LUA_EXTERNAL_LIB_SRC
     external/lerrors.c
     external/lhashlib.c
     external/lre2.cc
+    external/utils.cc
     external/lgsl.c
     external/llimits.c
     external/lcarray.c
@@ -144,8 +149,39 @@ add_executable(luac src/luac.c)
 target_link_libraries(luac lua_s ${LUA_LINK_LIBS})
 
 
+add_executable(d2
+  external/d2.cc
+  external/d2.h
+  external/d2strategies.cc
+  external/d2strategies.h
+  external/d2dbutils.cc
+  external/d2dbutils.h
+  external/d2utils.cc
+  external/d2utils.h
+  external/utils.cc
+  external/utils.h
+)
+if (D2_ENABLE_THREAD_POOL)
+  target_compile_definitions(d2 PUBLIC ENABLE_THREAD_POOL=ON)
+endif()
+target_link_libraries(d2
+  sqlite3_a
+  xxhash
+  re2
+  impala_thrift
+  thriftz
+  avrocpp_s
+  snappy
+  ${Boost_LIBRARIES}
+  ${GSL_LIBRARIES}
+  pthread
+)
+
+
+
 install(TARGETS
     doctor
+    d2
 )
 
 
@@ -162,4 +198,3 @@ endmacro()
 
 print_all_variables()
 endif(DEBUG_VARIABLES)
-
